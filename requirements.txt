@@ -1,0 +1,22 @@
+# FastAPI and server
+fastapi
+uvicorn
+
+# Data processing
+numpy
+pandas
+scikit-learn
+wfdb
+
+# ML libraries
+tensorflow
+torch
+xgboost
+
+# Database
+psycopg2
+pymongo
+
+# API requests and streaming
+requests
+kafka-python
