@@ -91,7 +91,12 @@ def main():
     model = load_model(model_path, input_size=1, hidden_size=128, num_layers=3, output_size=1)
     
     # Test on multiple records
-    test_records = ['100', '101', '103', '105', '106']
+    test_records = [
+        *[str(i) for i in list(range(100, 110)) + list(range(111, 120)) + list(range(121, 125))],
+        *[str(i) for i in list(range(200, 204)) + list(range(205, 206)) + list(range(207, 211)) +
+           list(range(212, 216)) + list(range(217, 218)) + list(range(219, 224)) +
+           list(range(228, 229)) + list(range(230, 235))]
+    ]
     
     for record in test_records:
         evaluate(model, record)
