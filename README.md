@@ -22,14 +22,14 @@ The system is designed to:
 ### 1. Create a virtual environment and install dependencies:
 ```bash
 python -m venv venv
-.env\Scriptsctivate
+.venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
 ---
 
 ### 2. Train the Model
-Train the LSTM model on the MIT-BIH database:
+Train the LSTM model on the MIT-BIH database (Although there is a trained model already available, a brand new one can be trained with this command):
 ```bash
 python models/train_lstm.py
 ```
