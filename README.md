@@ -5,6 +5,9 @@ python -m venv venv
 .\venv\Scripts\activate
 pip install -r requirements.txt
 
+# to test current model on MIT-BIH records with feedback
+python models/inference.py 
+
 
 Apple HealthKit Metrics:
 
