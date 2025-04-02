@@ -25,6 +25,10 @@ python -m venv venv
 .venv\Scripts\activate
 pip install -r requirements.txt
 ```
+### If you have already setup the virtual enviroment, to reactivate it do:
+```bash
+.\venv\Scripts\Activate.ps1
+```
 
 ---
 
@@ -63,5 +67,10 @@ These metrics will be integrated into the model to improve accuracy and enable r
 ✅ Deploy using FastAPI and Kubernetes for scalable inference and monitoring  
 
 ---
+
+
+```bash
+uvicorn api.main:app --reload
+```
 
 CardioVision aims to deliver an advanced, real-time cardiac risk prediction system that empowers users and healthcare professionals with actionable insights. ❤️
