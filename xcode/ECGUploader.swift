@@ -14,8 +14,12 @@ class ECGUploader: ObservableObject {
         }
 
         let ecgType = HKObjectType.electrocardiogramType()
-        let query = HKSampleQuery(sampleType: ecgType, predicate: nil, limit: 1,
-                                   sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)]) { _, samples, error in
+        let query = HKSampleQuery(
+            sampleType: ecgType,
+            predicate: nil,
+            limit: 1,
+            sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)]
+        ) { _, samples, error in
 
             guard let ecgSample = samples?.first as? HKElectrocardiogram else {
                 DispatchQueue.main.async {
@@ -32,19 +36,26 @@ class ECGUploader: ObservableObject {
                     if let voltage = measurement.quantity(for: .appleWatchSimilarToLeadI)?.doubleValue(for: .volt()) {
                         voltageValues.append(voltage)
                     }
+
                 case .done:
                     DispatchQueue.main.async {
                         self.ecgSignal = voltageValues
+                        print("[ECG] Total voltage values fetched: \(voltageValues.count)")
+                        print("[ECG] First 5 values: \(voltageValues.prefix(5))")
                     }
                     self.sendToBackend(ecgArray: voltageValues)
+
                 case .error(let error):
                     DispatchQueue.main.async {
                         self.predictionResult = "ECG Query error: \(error.localizedDescription)"
+                        print("[ERROR] ECG Query failed: \(error)")
                     }
                 }
             }
+
             self.healthStore.execute(voltageQuery)
         }
+
         healthStore.execute(query)
     }
 
@@ -56,28 +67,46 @@ class ECGUploader: ObservableObject {
             return
         }
 
-        let json: [String: Any] = ["ecg": ecgArray]
-        guard let jsonData = try? JSONSerialization.data(withJSONObject: json) else { return }
+        let json: [String: Any] = ["voltage": ecgArray]  // ✅ match backend
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: json) else {
+            print("[ERROR] Could not serialize JSON")
+            return
+        }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = jsonData
 
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let data = data,
-               let output = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-               let risk = output["risk"] as? String,
-               let probability = output["probability"] as? Double {
+        print("[SENDING] Sending ECG to backend: \(ecgArray.prefix(5))")
 
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
                 DispatchQueue.main.async {
-                    self.predictionResult = "Risk: \(risk.capitalized) (\(String(format: "%.2f", probability * 100))%)"
+                    self.predictionResult = "Prediction failed: \(error.localizedDescription)"
+                    print("[ERROR] Network error: \(error.localizedDescription)")
                 }
-            } else {
-                DispatchQueue.main.async {
-                    self.predictionResult = "Prediction failed: \(error?.localizedDescription ?? "unknown error")"
-                }
+                return
             }
+
+            guard let data = data,
+                  let output = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                DispatchQueue.main.async {
+                    self.predictionResult = "Invalid response format"
+                    print("[ERROR] Failed to parse response")
+                }
+                return
+            }
+
+            print("[RESPONSE] Output JSON: \(output)")
+
+            let risk = output["risk_level"] as? String ?? "unknown"
+            let probability = output["probability"] as? Double ?? 0.0
+
+            DispatchQueue.main.async {
+                self.predictionResult = "Risk: \(risk.capitalized) (\(String(format: "%.2f", probability * 100))%)"
+            }
+
         }.resume()
     }
 }
