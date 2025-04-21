@@ -7,9 +7,10 @@ from sklearn.metrics import (
     precision_score,
     recall_score,
     f1_score,
-    roc_auc_score
+    roc_auc_score,
+    confusion_matrix
 )
-from train_lstm import LSTMModel, load_beats
+from scripts.train_ecg import LSTMModel, load_beats
 
 # Load trained model
 def load_model(model_path, input_size, hidden_size, num_layers, output_size):
@@ -24,7 +25,7 @@ def load_ecg(record, window_size=250):
     rec = wfdb.rdrecord(f'../CardioVision/data/mitdb/{record}')
     ann = wfdb.rdann(f'../CardioVision/data/mitdb/{record}', extension='atr')
 
-    signal = rec.p_signal[:,0]
+    signal = rec.p_signal[:, 0]
     beats = []
     labels = []
 
@@ -71,10 +72,21 @@ def evaluate(model, record):
     labels = labels.numpy()
 
     accuracy = accuracy_score(labels, predictions)
-    precision = precision_score(labels, predictions)
-    recall = recall_score(labels, predictions)
-    f1 = f1_score(labels, predictions)
-    roc_auc = roc_auc_score(labels, predictions)
+    precision = precision_score(labels, predictions, zero_division=0)
+    recall = recall_score(labels, predictions, zero_division=0)
+    f1 = f1_score(labels, predictions, zero_division=0)
+    try:
+        roc_auc = roc_auc_score(labels, predictions)
+    except ValueError:
+        roc_auc = float('nan')
+
+    # Force confusion matrix to be 2x2 by specifying the labels.
+    cm = confusion_matrix(labels, predictions, labels=[0, 1])
+    try:
+        tn, fp, fn, tp = cm.ravel()
+    except ValueError:
+        print("Warning: Confusion matrix could not be unpacked to 4 values. Only one class present.")
+        tn = fp = fn = tp = 0
 
     print(f"\nEvaluation on record {record}:")
     print(f"Accuracy: {accuracy:.4f}")
@@ -82,8 +94,14 @@ def evaluate(model, record):
     print(f"Recall: {recall:.4f}")
     print(f"F1 Score: {f1:.4f}")
     print(f"ROC-AUC: {roc_auc:.4f}")
+    print("Confusion Matrix:")
+    print(f"  True Negatives: {tn}")
+    print(f"  False Positives: {fp}")
+    print(f"  False Negatives: {fn}")
+    print(f"  True Positives: {tp}")
 
-    return accuracy, precision, recall, f1, roc_auc
+    return accuracy, precision, recall, f1, roc_auc, tn, fp, fn, tp
+
 
 # Main function for testing multiple records
 def main():
