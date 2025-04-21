@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import torch
 import numpy as np
-from scripts.train_ecg import LSTMModel
+from scripts.train.train_ecg import LSTMModel
 
 app = FastAPI()
 

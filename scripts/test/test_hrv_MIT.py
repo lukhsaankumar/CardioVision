@@ -1,6 +1,7 @@
 import os
 import wfdb
 import numpy as np
+import scipy.stats
 from joblib import load
 from sklearn.metrics import (
     accuracy_score,
@@ -22,13 +23,17 @@ def load_scaler(path='../CardioVision/models/heartratevariability/scaler.pkl'):
 # Compute HRV features
 def compute_hrv_features(rr_intervals):
     diff_rr = np.diff(rr_intervals)
-    rmssd = np.sqrt(np.mean(diff_rr ** 2))
+    rmssd = np.sqrt(np.mean(diff_rr ** 2)) if len(diff_rr) > 0 else 0
     sdnn = np.std(rr_intervals)
     nn50 = np.sum(np.abs(diff_rr) > 50)
     pnn50 = nn50 / len(diff_rr) if len(diff_rr) > 0 else 0
     mean_rr = np.mean(rr_intervals)
-    return [rmssd, sdnn, nn50, pnn50, mean_rr]
+    min_rr = np.min(rr_intervals)
+    max_rr = np.max(rr_intervals)
+    hti = len(rr_intervals) / np.max(np.histogram(rr_intervals, bins='auto')[0])
+    shannon_entropy = -np.sum((p := np.histogram(rr_intervals, bins='fd', density=True)[0]) * np.log2(p + 1e-9))
 
+    return [rmssd, sdnn, nn50, pnn50, mean_rr, min_rr, max_rr, hti, shannon_entropy]
 # Extract RR intervals and corresponding labels
 def extract_rr_intervals(record):
     rec = wfdb.rdrecord(f'../CardioVision/data/mitdb/{record}')

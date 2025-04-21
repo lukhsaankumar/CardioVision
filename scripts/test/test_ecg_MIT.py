@@ -10,7 +10,7 @@ from sklearn.metrics import (
     roc_auc_score,
     confusion_matrix
 )
-from scripts.train_ecg import LSTMModel, load_beats
+from scripts.train.train_ecg import LSTMModel, load_beats
 
 # Load trained model
 def load_model(model_path, input_size, hidden_size, num_layers, output_size):

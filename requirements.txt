@@ -12,6 +12,7 @@ wfdb
 tensorflow
 torch
 xgboost
+imbalanced-learn
 
 # Database
 psycopg2
