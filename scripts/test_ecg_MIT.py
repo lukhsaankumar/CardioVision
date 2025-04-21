@@ -105,7 +105,7 @@ def evaluate(model, record):
 
 # Main function for testing multiple records
 def main():
-    model_path = '../models/lstm_model.pth'
+    model_path = '../CardioVision/models/ecg/lstm_model.pth'
     model = load_model(model_path, input_size=1, hidden_size=128, num_layers=3, output_size=1)
     
     # Test on multiple records

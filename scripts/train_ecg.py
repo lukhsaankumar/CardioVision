@@ -123,12 +123,12 @@ def train_model(hidden_size=128, num_layers=3, learning_rate=0.0005, batch_size=
         print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {avg_loss:.4f}, Accuracy: {accuracy:.2f}%")
 
     # Ensure the models directory exists
-    save_dir = os.path.abspath('../models')
+    save_dir = os.path.abspath('../CardioVision/models')
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 
     torch.save(model.state_dict(), os.path.join(save_dir, 'lstm_model.pth'))
-    print("Model saved to '../models/lstm_model.pth'")
+    print("Model saved to '../CardioVision/models/ecg/lstm_model.pth'")
 
 if __name__ == "__main__":
     train_model()

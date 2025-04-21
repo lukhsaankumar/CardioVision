@@ -14,13 +14,13 @@ def load_hr(record_id, base_path='../CardioVision/data/mimic3wdb/1.0'):
     return rec.p_signal[:, idx]
 
 def train_hr(records, threshold=160,
-             model_path='../CardioVision/models/hr_model.json'):
+             model_path='../CardioVision/models/heartrate/hr_model.json'):
     os.makedirs(os.path.dirname(model_path), exist_ok=True)
 
     # Save the threshold rule as JSON
     with open(model_path, 'w') as f:
         json.dump({'threshold': threshold}, f)
-    print(f"✅ Saved HR threshold model to {model_path}")
+    print(f"Saved HR threshold model to {model_path}")
 
     # Collect HR data
     all_hr = []
@@ -32,9 +32,9 @@ def train_hr(records, threshold=160,
     all_hr = np.concatenate(all_hr)
     hr_labels = (all_hr > threshold).astype(int)
 
-    np.save('../CardioVision/models/hr_values_train.npy', all_hr)
-    np.save('../CardioVision/models/hr_labels_train.npy', hr_labels)
-    print(f"✅ Saved training HR values and labels.")
+    np.save('../CardioVision/models//heartrate/hr_values_train.npy', all_hr)
+    np.save('../CardioVision/models/heartrate/hr_labels_train.npy', hr_labels)
+    print(f"Saved training HR values and labels.")
 
 if __name__ == '__main__':
     training_records = ['3000003', '3000105']

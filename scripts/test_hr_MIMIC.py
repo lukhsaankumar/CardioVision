@@ -4,7 +4,7 @@ import numpy as np
 import wfdb
 from sklearn.metrics import classification_report, confusion_matrix
 
-def load_model(model_path='../CardioVision/models/hr_model.json'):
+def load_model(model_path='../CardioVision/models/heartrate/hr_model.json'):
     with open(model_path, 'r') as f:
         return json.load(f)
 
@@ -18,7 +18,7 @@ def load_hr(record_id, base_path='../CardioVision/data/mimic3wdb/1.0'):
         raise RuntimeError(f"'HR' channel not found in {rec_path}")
     return rec.p_signal[:, idx]
 
-def test_hr(records, model_path='../CardioVision/models/hr_model.json'):
+def test_hr(records, model_path='../CardioVision/models/heartrate/hr_model.json'):
     threshold = load_model(model_path)['threshold']
     print(f"Using HR threshold: {threshold} bpm")
 
@@ -50,8 +50,8 @@ def test_hr(records, model_path='../CardioVision/models/hr_model.json'):
     print("Confusion Matrix:")
     print(confusion_matrix(all_true, all_preds, labels=[0, 1]))
 
-    np.save('../CardioVision/models/hr_values_test.npy', all_true)
-    np.save('../CardioVision/models/hr_preds_test.npy', all_preds)
+    np.save('../CardioVision/models/heartrate/hr_values_test.npy', all_true)
+    np.save('../CardioVision/models/heartrate/hr_preds_test.npy', all_preds)
     print(f"Saved testing HR values and predictions.")
 
 if __name__ == '__main__':
