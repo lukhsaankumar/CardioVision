@@ -1,3 +1,3 @@
 MIT-BIH Arrhythmia Database
-
+Apple Healthkit API
 Benini, Sergio; Ivanovic, Marija D.; Savardi, Mattia ; Krsic, Jelena; Hadžievski, Ljupco; Baronio, Fabio  (2020), “Cardially - ECG waveform dataset for predicting defibrillation outcome in out-of-hospital cardiac arrested patients”, Mendeley Data, V1, doi: 10.17632/wpr5nzyn2z.1
