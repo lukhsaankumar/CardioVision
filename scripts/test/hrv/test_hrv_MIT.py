@@ -3,6 +3,7 @@ import wfdb
 import numpy as np
 import scipy.stats
 from joblib import load
+from scipy.signal import welch
 from sklearn.metrics import (
     accuracy_score,
     precision_score,
@@ -22,18 +23,34 @@ def load_scaler(path='../CardioVision/models/heartratevariability/scaler.pkl'):
 
 # Compute HRV features
 def compute_hrv_features(rr_intervals):
+    rr_intervals = rr_intervals[(rr_intervals > 300) & (rr_intervals < 2000)]
+    if len(rr_intervals) < 2:
+        return [0] * 14
+
     diff_rr = np.diff(rr_intervals)
-    rmssd = np.sqrt(np.mean(diff_rr ** 2)) if len(diff_rr) > 0 else 0
+    rmssd = np.sqrt(np.mean(diff_rr ** 2)) if len(diff_rr) else 0
     sdnn = np.std(rr_intervals)
     nn50 = np.sum(np.abs(diff_rr) > 50)
-    pnn50 = nn50 / len(diff_rr) if len(diff_rr) > 0 else 0
-    mean_rr = np.mean(rr_intervals)
-    min_rr = np.min(rr_intervals)
-    max_rr = np.max(rr_intervals)
-    hti = len(rr_intervals) / np.max(np.histogram(rr_intervals, bins='auto')[0])
-    shannon_entropy = -np.sum((p := np.histogram(rr_intervals, bins='fd', density=True)[0]) * np.log2(p + 1e-9))
+    pnn50 = nn50 / len(diff_rr)
 
-    return [rmssd, sdnn, nn50, pnn50, mean_rr, min_rr, max_rr, hti, shannon_entropy]
+    f, Pxx = welch(rr_intervals, fs=4.0, nperseg=len(rr_intervals))
+    lf = np.trapezoid(Pxx[(f >= 0.04) & (f < 0.15)], f[(f >= 0.04) & (f < 0.15)]) if len(Pxx) else 0
+    hf = np.trapezoid(Pxx[(f >= 0.15) & (f < 0.4)], f[(f >= 0.15) & (f < 0.4)]) if len(Pxx) else 0
+    lf_hf = lf / hf if hf > 0 else 0
+
+    sd1 = np.sqrt(0.5 * np.var(diff_rr))
+    sd2 = np.sqrt(2 * sdnn ** 2 - sd1 ** 2) if 2 * sdnn ** 2 > sd1 ** 2 else 0
+
+    hist, _ = np.histogram(rr_intervals, bins=50, density=True)
+    probs = hist / np.sum(hist) if np.sum(hist) else np.zeros_like(hist)
+    shannon = -np.sum(probs * np.log2(probs + 1e-8))
+
+    cvnni = sdnn / np.mean(rr_intervals) if np.mean(rr_intervals) else 0
+    tinn = np.max(hist)
+    median_rr = np.median(rr_intervals)
+
+    return [rmssd, sdnn, nn50, pnn50, lf, hf, lf_hf, sd1, sd2, shannon, cvnni, tinn, median_rr, len(rr_intervals)]
+
 # Extract RR intervals and corresponding labels
 def extract_rr_intervals(record):
     rec = wfdb.rdrecord(f'../CardioVision/data/mitdb/{record}')
