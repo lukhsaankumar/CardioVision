@@ -1,0 +1,337 @@
+Evaluation on record 100:
+Accuracy: 0.9991
+Precision: 0.9706
+Recall: 0.9706
+F1 Score: 0.9706
+ROC-AUC: 0.9851
+
+Evaluation on record 101:
+Accuracy: 0.9968
+Precision: 0.7692
+Recall: 0.7692
+F1 Score: 0.7692
+ROC-AUC: 0.8838
+
+Evaluation on record 102:
+Accuracy: 1.0000
+Precision: 1.0000
+Recall: 1.0000
+F1 Score: 1.0000
+ROC-AUC: 1.0000
+
+Evaluation on record 103:
+Accuracy: 0.9981
+Precision: 0.6667
+Recall: 1.0000
+F1 Score: 0.8000
+ROC-AUC: 0.9990
+
+Evaluation on record 104:
+Accuracy: 0.9948
+Precision: 0.9991
+Recall: 0.9953
+F1 Score: 0.9972
+ROC-AUC: 0.9915
+
+Evaluation on record 105:
+Accuracy: 0.9784
+Precision: 0.7789
+Recall: 0.9024
+F1 Score: 0.8362
+ROC-AUC: 0.9429
+
+Evaluation on record 106:
+Accuracy: 1.0000
+Precision: 1.0000
+Recall: 1.0000
+F1 Score: 1.0000
+ROC-AUC: 1.0000
+C:\Users\lukhs\Documents\Projects\CardioVision\venv\Lib\site-packages\sklearn\metrics\_ranking.py:379: UndefinedMetricWarning: Only one class is present in y_true. ROC AUC score is not defined in that case.
+  warnings.warn(
+
+Evaluation on record 107:
+Accuracy: 1.0000
+Precision: 1.0000
+Recall: 1.0000
+F1 Score: 1.0000
+ROC-AUC: nan
+
+Evaluation on record 108:
+Accuracy: 0.9879
+Precision: 0.8961
+Recall: 0.8313
+F1 Score: 0.8625
+ROC-AUC: 0.9134
+
+Evaluation on record 109:
+Accuracy: 0.9913
+Precision: 0.6667
+Recall: 0.9524
+F1 Score: 0.7843
+ROC-AUC: 0.9722
+
+Evaluation on record 111:
+Accuracy: 0.9991
+Precision: 0.8182
+Recall: 1.0000
+F1 Score: 0.9000
+ROC-AUC: 0.9995
+
+Evaluation on record 112:
+Accuracy: 0.9996
+Precision: 0.9231
+Recall: 1.0000
+F1 Score: 0.9600
+ROC-AUC: 0.9998
+
+Evaluation on record 113:
+Accuracy: 0.9994
+Precision: 1.0000
+Recall: 0.8333
+F1 Score: 0.9091
+ROC-AUC: 0.9167
+
+Evaluation on record 114:
+Accuracy: 0.9936
+Precision: 0.9385
+Recall: 0.8841
+F1 Score: 0.9104
+ROC-AUC: 0.9409
+
+Evaluation on record 115:
+Accuracy: 0.9969
+Precision: 0.6000
+Recall: 0.7500
+F1 Score: 0.6667
+ROC-AUC: 0.8740
+
+Evaluation on record 116:
+Accuracy: 0.9950
+Precision: 0.9421
+Recall: 0.9580
+F1 Score: 0.9500
+ROC-AUC: 0.9775
+
+Evaluation on record 117:
+Accuracy: 0.9974
+Precision: 0.5000
+Recall: 0.7500
+F1 Score: 0.6000
+ROC-AUC: 0.8740
+
+Evaluation on record 118:
+Accuracy: 0.9917
+Precision: 0.8808
+Recall: 0.9925
+F1 Score: 0.9333
+ROC-AUC: 0.9921
+
+Evaluation on record 119:
+Accuracy: 0.9995
+Precision: 1.0000
+Recall: 0.9982
+F1 Score: 0.9991
+ROC-AUC: 0.9991
+
+Evaluation on record 121:
+Accuracy: 0.9979
+Precision: 1.0000
+Recall: 0.7143
+F1 Score: 0.8333
+ROC-AUC: 0.8571
+
+Evaluation on record 122:
+Accuracy: 0.9996
+Precision: 1.0000
+Recall: 0.5000
+F1 Score: 0.6667
+ROC-AUC: 0.7500
+
+Evaluation on record 123:
+Accuracy: 1.0000
+Precision: 1.0000
+Recall: 1.0000
+F1 Score: 1.0000
+ROC-AUC: 1.0000
+
+Evaluation on record 124:
+Accuracy: 0.9890
+Precision: 0.9540
+Recall: 0.8557
+F1 Score: 0.9022
+ROC-AUC: 0.9265
+
+Evaluation on record 200:
+Accuracy: 0.9814
+Precision: 0.9844
+Recall: 0.9656
+F1 Score: 0.9750
+ROC-AUC: 0.9782
+
+Evaluation on record 201:
+Accuracy: 0.9843
+Precision: 0.9818
+Recall: 0.9380
+F1 Score: 0.9594
+ROC-AUC: 0.9668
+
+Evaluation on record 202:
+Accuracy: 0.9902
+Precision: 0.9103
+Recall: 0.8353
+F1 Score: 0.8712
+ROC-AUC: 0.9159
+
+Evaluation on record 203:
+Accuracy: 0.9768
+Precision: 0.9258
+Recall: 0.9515
+F1 Score: 0.9385
+ROC-AUC: 0.9670
+
+Evaluation on record 205:
+Accuracy: 0.9966
+Precision: 0.9789
+Recall: 0.9300
+F1 Score: 0.9538
+ROC-AUC: 0.9646
+
+Evaluation on record 207:
+Accuracy: 0.9870
+Precision: 0.9810
+Recall: 0.9822
+F1 Score: 0.9816
+ROC-AUC: 0.9859
+
+Evaluation on record 208:
+Accuracy: 0.9842
+Precision: 0.9930
+Recall: 0.9738
+F1 Score: 0.9833
+ROC-AUC: 0.9838
+
+Evaluation on record 209:
+Accuracy: 0.9784
+Precision: 0.9461
+Recall: 0.8977
+F1 Score: 0.9212
+ROC-AUC: 0.9446
+
+Evaluation on record 210:
+Accuracy: 0.9855
+Precision: 0.9784
+Recall: 0.8697
+F1 Score: 0.9209
+ROC-AUC: 0.9338
+
+Evaluation on record 212:
+Accuracy: 0.9989
+Precision: 0.8333
+Recall: 1.0000
+F1 Score: 0.9091
+ROC-AUC: 0.9995
+
+Evaluation on record 213:
+Accuracy: 0.9641
+Precision: 0.9391
+Recall: 0.8758
+F1 Score: 0.9063
+ROC-AUC: 0.9309
+
+Evaluation on record 214:
+Accuracy: 0.9939
+Precision: 0.9729
+Recall: 0.9795
+F1 Score: 0.9762
+ROC-AUC: 0.9878
+
+Evaluation on record 215:
+Accuracy: 0.9988
+Precision: 0.9950
+Recall: 0.9853
+F1 Score: 0.9901
+ROC-AUC: 0.9925
+
+Evaluation on record 217:
+Accuracy: 0.9947
+Precision: 1.0000
+Recall: 0.9941
+F1 Score: 0.9970
+ROC-AUC: 0.9971
+
+Evaluation on record 219:
+Accuracy: 0.9935
+Precision: 0.9821
+Recall: 0.9522
+F1 Score: 0.9669
+ROC-AUC: 0.9751
+
+Evaluation on record 220:
+Accuracy: 0.9956
+Precision: 0.9487
+Recall: 0.9737
+F1 Score: 0.9610
+ROC-AUC: 0.9853
+
+Evaluation on record 221:
+Accuracy: 0.9996
+Precision: 0.9977
+Recall: 1.0000
+F1 Score: 0.9988
+ROC-AUC: 0.9998
+
+Evaluation on record 222:
+Accuracy: 0.9578
+Precision: 0.8851
+Recall: 0.7939
+F1 Score: 0.8370
+ROC-AUC: 0.8888
+
+Evaluation on record 223:
+Accuracy: 0.9860
+Precision: 0.9714
+Recall: 0.9665
+F1 Score: 0.9689
+ROC-AUC: 0.9791
+
+Evaluation on record 228:
+Accuracy: 0.9897
+Precision: 0.9757
+Recall: 0.9757
+F1 Score: 0.9757
+ROC-AUC: 0.9846
+
+Evaluation on record 230:
+Accuracy: 0.9878
+Precision: 0.8782
+Recall: 0.9952
+F1 Score: 0.9330
+ROC-AUC: 0.9912
+
+Evaluation on record 231:
+Accuracy: 0.9995
+Precision: 1.0000
+Recall: 0.9977
+F1 Score: 0.9989
+ROC-AUC: 0.9989
+
+Evaluation on record 232:
+Accuracy: 0.9829
+Precision: 0.9957
+Recall: 0.9824
+F1 Score: 0.9890
+ROC-AUC: 0.9836
+
+Evaluation on record 233:
+Accuracy: 0.9971
+Precision: 0.9967
+Recall: 0.9935
+F1 Score: 0.9951
+ROC-AUC: 0.9961
+
+Evaluation on record 234:
+Accuracy: 0.9967
+Precision: 0.9821
+Recall: 0.8730
+F1 Score: 0.9244
+ROC-AUC: 0.9363

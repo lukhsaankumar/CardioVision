@@ -1,0 +1,121 @@
+[Test] Record 100
+Windows: 14313 | High HR Events (True): 8053 | Predicted: 8053
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00      6260
+           1       1.00      1.00      1.00      8053
+
+    accuracy                           1.00     14313
+   macro avg       1.00      1.00      1.00     14313
+weighted avg       1.00      1.00      1.00     14313
+
+Confusion Matrix:
+[[6260    0]
+ [   0 8053]]
+
+[Test] Record 101
+Windows: 9984 | High HR Events (True): 3068 | Predicted: 3068
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00      6916
+           1       1.00      1.00      1.00      3068
+
+    accuracy                           1.00      9984
+   macro avg       1.00      1.00      1.00      9984
+weighted avg       1.00      1.00      1.00      9984
+
+Confusion Matrix:
+[[6916    0]
+ [   0 3068]]
+[Skip] 102: MLII lead not found in 102
+
+[Test] Record 103
+Windows: 10365 | High HR Events (True): 5432 | Predicted: 5432      
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00      4933
+           1       1.00      1.00      1.00      5432
+
+    accuracy                           1.00     10365
+   macro avg       1.00      1.00      1.00     10365
+weighted avg       1.00      1.00      1.00     10365
+
+Confusion Matrix:
+[[4933    0]
+ [   0 5432]]
+[Skip] 104: MLII lead not found in 104
+
+[Test] Record 105
+Windows: 11065 | High HR Events (True): 8014 | Predicted: 8014      
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00      3051
+           1       1.00      1.00      1.00      8014
+
+    accuracy                           1.00     11065
+   macro avg       1.00      1.00      1.00     11065
+weighted avg       1.00      1.00      1.00     11065
+
+Confusion Matrix:
+[[3051    0]
+ [   0 8014]]
+
+[Test] Record 106
+Windows: 9256 | High HR Events (True): 2684 | Predicted: 2684       
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00      6572
+           1       1.00      1.00      1.00      2684
+
+    accuracy                           1.00      9256
+   macro avg       1.00      1.00      1.00      9256
+weighted avg       1.00      1.00      1.00      9256
+
+Confusion Matrix:
+[[6572    0]
+ [   0 2684]]
+
+[Test] Record 107
+Windows: 5311 | High HR Events (True): 134 | Predicted: 134
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00      5177
+           1       1.00      1.00      1.00       134
+
+    accuracy                           1.00      5311
+   macro avg       1.00      1.00      1.00      5311
+weighted avg       1.00      1.00      1.00      5311
+
+Confusion Matrix:
+[[5177    0]
+ [   0  134]]
+
+[Test] Record 108
+Windows: 12263 | High HR Events (True): 6562 | Predicted: 6562      
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00      5701
+           1       1.00      1.00      1.00      6562
+
+    accuracy                           1.00     12263
+   macro avg       1.00      1.00      1.00     12263
+weighted avg       1.00      1.00      1.00     12263
+
+Confusion Matrix:
+[[5701    0]
+ [   0 6562]]
+
+[Test] Record 109
+Windows: 7576 | High HR Events (True): 5693 | Predicted: 5693       
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00      1883
+           1       1.00      1.00      1.00      5693
+
+    accuracy                           1.00      7576
+   macro avg       1.00      1.00      1.00      7576
+weighted avg       1.00      1.00      1.00      7576
+
+Confusion Matrix:
+[[1883    0]
+ [   0 5693]]

@@ -1,0 +1,16 @@
+✅ Total samples: 175780
+📋 Classification Report:
+              precision    recall  f1-score   support
+
+         Low       0.92      0.57      0.71    153596
+         Med       0.02      0.46      0.04      1959
+        High       0.26      0.52      0.35     20225
+
+    accuracy                           0.57    175780
+   macro avg       0.40      0.52      0.37    175780
+weighted avg       0.83      0.57      0.66    175780
+
+🧮 Confusion Matrix:
+ [[88020 36969 28607]
+ [  658   908   393]
+ [ 7248  2541 10436]]

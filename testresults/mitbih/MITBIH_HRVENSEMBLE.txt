@@ -1,0 +1,719 @@
+[Test] Record 100:
+Total: 2263  |  Arrhythmic: 33  |  Predicted: 563
+              precision    recall  f1-score   support
+
+           0       0.99      0.75      0.85      2230
+           1       0.02      0.33      0.04        33
+
+    accuracy                           0.75      2263
+   macro avg       0.50      0.54      0.45      2263
+weighted avg       0.97      0.75      0.84      2263
+
+Confusion Matrix:
+[[1678  552]
+ [  22   11]]
+
+[Test] Record 101:
+Total: 1863  |  Arrhythmic: 13  |  Predicted: 407
+              precision    recall  f1-score   support
+
+           0       0.99      0.78      0.87      1850
+           1       0.00      0.15      0.01        13
+
+    accuracy                           0.78      1863
+   macro avg       0.50      0.47      0.44      1863
+weighted avg       0.99      0.78      0.87      1863
+
+Confusion Matrix:
+[[1445  405]
+ [  11    2]]
+
+[Test] Record 102:
+Total: 2181  |  Arrhythmic: 2082  |  Predicted: 1267
+              precision    recall  f1-score   support
+
+           0       0.07      0.66      0.13        99
+           1       0.97      0.59      0.74      2082
+
+    accuracy                           0.60      2181
+   macro avg       0.52      0.62      0.43      2181
+weighted avg       0.93      0.60      0.71      2181
+
+Confusion Matrix:
+[[  65   34]
+ [ 849 1233]]
+
+[Test] Record 103:
+Total: 2080  |  Arrhythmic: 8  |  Predicted: 808
+              precision    recall  f1-score   support
+
+           0       1.00      0.61      0.76      2072
+           1       0.00      0.50      0.01         8
+
+    accuracy                           0.61      2080
+   macro avg       0.50      0.56      0.38      2080
+weighted avg       0.99      0.61      0.76      2080
+
+Confusion Matrix:
+[[1268  804]
+ [   4    4]]
+
+[Test] Record 104:
+Total: 2300  |  Arrhythmic: 2137  |  Predicted: 1897
+              precision    recall  f1-score   support
+
+           0       0.07      0.17      0.10       163
+           1       0.93      0.82      0.87      2137
+
+    accuracy                           0.78      2300
+   macro avg       0.50      0.50      0.49      2300
+weighted avg       0.87      0.78      0.82      2300
+
+Confusion Matrix:
+[[  28  135]
+ [ 375 1762]]
+
+[Test] Record 105:
+Total: 2680  |  Arrhythmic: 164  |  Predicted: 541
+              precision    recall  f1-score   support
+
+           0       0.94      0.80      0.86      2516
+           1       0.06      0.21      0.10       164
+
+    accuracy                           0.76      2680
+   macro avg       0.50      0.50      0.48      2680
+weighted avg       0.89      0.76      0.82      2680
+
+Confusion Matrix:
+[[2009  507]
+ [ 130   34]]
+
+[Test] Record 106:
+Total: 2087  |  Arrhythmic: 589  |  Predicted: 1077
+              precision    recall  f1-score   support
+
+           0       0.87      0.58      0.70      1498
+           1       0.42      0.77      0.54       589
+
+    accuracy                           0.64      2087
+   macro avg       0.64      0.68      0.62      2087
+weighted avg       0.74      0.64      0.65      2087
+
+Confusion Matrix:
+[[874 624]
+ [136 453]]
+
+[Test] Record 107:
+Total: 2129  |  Arrhythmic: 2129  |  Predicted: 1443
+              precision    recall  f1-score   support
+
+           0       0.00      0.00      0.00         0
+           1       1.00      0.68      0.81      2129
+
+    accuracy                           0.68      2129
+   macro avg       0.50      0.34      0.40      2129
+weighted avg       1.00      0.68      0.81      2129
+
+Confusion Matrix:
+[[   0    0]
+ [ 686 1443]]
+
+[Test] Record 108:
+Total: 1813  |  Arrhythmic: 83  |  Predicted: 305
+              precision    recall  f1-score   support
+
+           0       0.95      0.83      0.88      1730
+           1       0.02      0.08      0.04        83
+
+    accuracy                           0.79      1813
+   macro avg       0.49      0.46      0.46      1813
+weighted avg       0.91      0.79      0.85      1813
+
+Confusion Matrix:
+[[1432  298]
+ [  76    7]]
+
+[Test] Record 109:
+Total: 2524  |  Arrhythmic: 42  |  Predicted: 230
+              precision    recall  f1-score   support
+
+           0       0.98      0.91      0.94      2482
+           1       0.01      0.05      0.01        42
+
+    accuracy                           0.89      2524
+   macro avg       0.50      0.48      0.48      2524
+weighted avg       0.97      0.89      0.93      2524
+
+Confusion Matrix:
+[[2254  228]
+ [  40    2]]
+
+[Test] Record 111:
+Total: 2122  |  Arrhythmic: 9  |  Predicted: 1060
+              precision    recall  f1-score   support
+
+           0       1.00      0.50      0.67      2113
+           1       0.00      0.44      0.01         9
+
+    accuracy                           0.50      2122
+   macro avg       0.50      0.47      0.34      2122
+weighted avg       0.99      0.50      0.66      2122
+
+Confusion Matrix:
+[[1057 1056]
+ [   5    4]]
+
+[Test] Record 112:
+Total: 2539  |  Arrhythmic: 12  |  Predicted: 62
+              precision    recall  f1-score   support
+
+           0       1.00      0.98      0.99      2527
+           1       0.05      0.25      0.08        12
+
+    accuracy                           0.97      2539
+   macro avg       0.52      0.61      0.53      2539
+weighted avg       0.99      0.97      0.98      2539
+
+Confusion Matrix:
+[[2468   59]
+ [   9    3]]
+
+[Test] Record 113:
+Total: 1785  |  Arrhythmic: 6  |  Predicted: 152
+              precision    recall  f1-score   support
+
+           0       1.00      0.92      0.95      1779
+           1       0.01      0.33      0.03         6
+
+    accuracy                           0.91      1785
+   macro avg       0.51      0.62      0.49      1785
+weighted avg       0.99      0.91      0.95      1785
+
+Confusion Matrix:
+[[1629  150]
+ [   4    2]]
+
+[Test] Record 114:
+Total: 1879  |  Arrhythmic: 69  |  Predicted: 724
+              precision    recall  f1-score   support
+
+           0       0.95      0.61      0.74      1810
+           1       0.02      0.23      0.04        69
+
+    accuracy                           0.59      1879
+   macro avg       0.49      0.42      0.39      1879
+weighted avg       0.92      0.59      0.72      1879
+
+Confusion Matrix:
+[[1102  708]
+ [  53   16]]
+
+[Test] Record 115:
+Total: 1951  |  Arrhythmic: 8  |  Predicted: 407
+              precision    recall  f1-score   support
+
+           0       1.00      0.79      0.88      1943
+           1       0.00      0.25      0.01         8
+
+    accuracy                           0.79      1951
+   macro avg       0.50      0.52      0.45      1951
+weighted avg       0.99      0.79      0.88      1951
+
+Confusion Matrix:
+[[1538  405]
+ [   6    2]]
+
+[Test] Record 116:
+Total: 2410  |  Arrhythmic: 118  |  Predicted: 608
+              precision    recall  f1-score   support
+
+           0       0.95      0.75      0.84      2292
+           1       0.05      0.28      0.09       118
+
+    accuracy                           0.73      2410
+   macro avg       0.50      0.51      0.46      2410
+weighted avg       0.91      0.73      0.80      2410
+
+Confusion Matrix:
+[[1717  575]
+ [  85   33]]
+
+[Test] Record 117:
+Total: 1528  |  Arrhythmic: 4  |  Predicted: 31
+              precision    recall  f1-score   support
+
+           0       1.00      0.98      0.99      1524
+           1       0.00      0.00      0.00         4
+
+    accuracy                           0.98      1528
+   macro avg       0.50      0.49      0.49      1528
+weighted avg       0.99      0.98      0.99      1528
+
+Confusion Matrix:
+[[1493   31]
+ [   4    0]]
+
+[Test] Record 118:
+Total: 2290  |  Arrhythmic: 134  |  Predicted: 548
+              precision    recall  f1-score   support
+
+           0       0.95      0.76      0.85      2156
+           1       0.07      0.29      0.11       134
+
+    accuracy                           0.74      2290
+   macro avg       0.51      0.53      0.48      2290
+weighted avg       0.89      0.74      0.80      2290
+
+Confusion Matrix:
+[[1647  509]
+ [  95   39]]
+
+[Test] Record 119:
+Total: 2083  |  Arrhythmic: 548  |  Predicted: 841
+              precision    recall  f1-score   support
+
+           0       0.77      0.62      0.69      1535
+           1       0.31      0.48      0.38       548
+
+    accuracy                           0.58      2083
+   macro avg       0.54      0.55      0.53      2083
+weighted avg       0.65      0.58      0.61      2083
+
+Confusion Matrix:
+[[956 579]
+ [286 262]]
+
+[Test] Record 121:
+Total: 1865  |  Arrhythmic: 14  |  Predicted: 119
+              precision    recall  f1-score   support
+
+           0       1.00      0.94      0.97      1851
+           1       0.05      0.43      0.09        14
+
+    accuracy                           0.94      1865
+   macro avg       0.52      0.68      0.53      1865
+weighted avg       0.99      0.94      0.96      1865
+
+Confusion Matrix:
+[[1738  113]
+ [   8    6]]
+
+[Test] Record 122:
+Total: 2468  |  Arrhythmic: 2  |  Predicted: 25
+              precision    recall  f1-score   support
+
+           0       1.00      0.99      0.99      2466
+           1       0.00      0.00      0.00         2
+
+    accuracy                           0.99      2468
+   macro avg       0.50      0.49      0.50      2468
+weighted avg       1.00      0.99      0.99      2468
+
+Confusion Matrix:
+[[2441   25]
+ [   2    0]]
+
+[Test] Record 123:
+Total: 1508  |  Arrhythmic: 3  |  Predicted: 28
+              precision    recall  f1-score   support
+
+           0       1.00      0.98      0.99      1505
+           1       0.00      0.00      0.00         3
+
+    accuracy                           0.98      1508
+   macro avg       0.50      0.49      0.49      1508
+weighted avg       1.00      0.98      0.99      1508
+
+Confusion Matrix:
+[[1477   28]
+ [   3    0]]
+
+[Test] Record 124:
+Total: 1623  |  Arrhythmic: 97  |  Predicted: 221
+              precision    recall  f1-score   support
+
+           0       0.94      0.86      0.90      1526
+           1       0.04      0.09      0.06        97
+
+    accuracy                           0.82      1623
+   macro avg       0.49      0.48      0.48      1623
+weighted avg       0.88      0.82      0.85      1623
+
+Confusion Matrix:
+[[1314  212]
+ [  88    9]]
+
+[Test] Record 200:
+Total: 2781  |  Arrhythmic: 1043  |  Predicted: 2114
+              precision    recall  f1-score   support
+
+           0       0.72      0.28      0.40      1738
+           1       0.41      0.82      0.54      1043
+
+    accuracy                           0.48      2781
+   macro avg       0.57      0.55      0.47      2781
+weighted avg       0.60      0.48      0.46      2781
+
+Confusion Matrix:
+[[ 483 1255]
+ [ 184  859]]
+
+[Test] Record 201:
+Total: 2028  |  Arrhythmic: 403  |  Predicted: 911
+              precision    recall  f1-score   support
+
+           0       0.75      0.51      0.61      1625
+           1       0.13      0.30      0.18       403
+
+    accuracy                           0.47      2028
+   macro avg       0.44      0.41      0.40      2028
+weighted avg       0.63      0.47      0.52      2028
+
+Confusion Matrix:
+[[835 790]
+ [282 121]]
+
+[Test] Record 202:
+Total: 2135  |  Arrhythmic: 84  |  Predicted: 1042
+              precision    recall  f1-score   support
+
+           0       0.97      0.52      0.67      2051
+           1       0.05      0.57      0.09        84
+
+    accuracy                           0.52      2135
+   macro avg       0.51      0.54      0.38      2135
+weighted avg       0.93      0.52      0.65      2135
+
+Confusion Matrix:
+[[1057  994]
+ [  36   48]]
+
+[Test] Record 203:
+Total: 3097  |  Arrhythmic: 577  |  Predicted: 2553
+              precision    recall  f1-score   support
+
+           0       0.87      0.19      0.31      2520
+           1       0.20      0.88      0.32       577
+
+    accuracy                           0.32      3097
+   macro avg       0.53      0.53      0.32      3097
+weighted avg       0.74      0.32      0.31      3097
+
+Confusion Matrix:
+[[ 473 2047]
+ [  71  506]]
+
+[Test] Record 205:
+Total: 2661  |  Arrhythmic: 100  |  Predicted: 216
+              precision    recall  f1-score   support
+
+           0       0.98      0.94      0.96      2561
+           1       0.28      0.60      0.38       100
+
+    accuracy                           0.93      2661
+   macro avg       0.63      0.77      0.67      2661
+weighted avg       0.96      0.93      0.94      2661
+
+Confusion Matrix:
+[[2405  156]
+ [  40   60]]
+
+[Test] Record 207:
+Total: 2374  |  Arrhythmic: 836  |  Predicted: 1206
+              precision    recall  f1-score   support
+
+           0       0.88      0.67      0.76      1538
+           1       0.58      0.83      0.68       836
+
+    accuracy                           0.73      2374
+   macro avg       0.73      0.75      0.72      2374
+weighted avg       0.77      0.73      0.73      2374
+
+Confusion Matrix:
+[[1028  510]
+ [ 140  696]]
+
+[Test] Record 208:
+Total: 3029  |  Arrhythmic: 1446  |  Predicted: 2442
+              precision    recall  f1-score   support
+
+           0       0.57      0.21      0.31      1583
+           1       0.49      0.83      0.61      1446
+
+    accuracy                           0.51      3029
+   macro avg       0.53      0.52      0.46      3029
+weighted avg       0.53      0.51      0.46      3029
+
+Confusion Matrix:
+[[ 336 1247]
+ [ 251 1195]]
+
+[Test] Record 209:
+Total: 3041  |  Arrhythmic: 430  |  Predicted: 925
+              precision    recall  f1-score   support
+
+           0       0.93      0.76      0.84      2611
+           1       0.32      0.68      0.43       430
+
+    accuracy                           0.75      3041
+   macro avg       0.63      0.72      0.63      3041
+weighted avg       0.85      0.75      0.78      3041
+
+Confusion Matrix:
+[[1978  633]
+ [ 138  292]]
+
+[Test] Record 210:
+Total: 2674  |  Arrhythmic: 260  |  Predicted: 1482
+              precision    recall  f1-score   support
+
+           0       0.92      0.45      0.61      2414
+           1       0.11      0.63      0.19       260
+
+    accuracy                           0.47      2674
+   macro avg       0.51      0.54      0.40      2674
+weighted avg       0.84      0.47      0.57      2674
+
+Confusion Matrix:
+[[1095 1319]
+ [  97  163]]
+
+[Test] Record 212:
+Total: 2752  |  Arrhythmic: 14  |  Predicted: 177
+              precision    recall  f1-score   support
+
+           0       1.00      0.94      0.97      2738
+           1       0.03      0.36      0.05        14
+
+    accuracy                           0.93      2752
+   macro avg       0.51      0.65      0.51      2752
+weighted avg       0.99      0.93      0.96      2752
+
+Confusion Matrix:
+[[2566  172]
+ [   9    5]]
+
+[Test] Record 213:
+Total: 3283  |  Arrhythmic: 652  |  Predicted: 1819
+              precision    recall  f1-score   support
+
+           0       0.83      0.46      0.59      2631
+           1       0.22      0.62      0.32       652
+
+    accuracy                           0.49      3283
+   macro avg       0.52      0.54      0.46      3283
+weighted avg       0.71      0.49      0.54      3283
+
+Confusion Matrix:
+[[1213 1418]
+ [ 251  401]]
+
+[Test] Record 214:
+Total: 2286  |  Arrhythmic: 292  |  Predicted: 1243
+              precision    recall  f1-score   support
+
+           0       0.87      0.46      0.60      1994
+           1       0.13      0.54      0.21       292
+
+    accuracy                           0.47      2286
+   macro avg       0.50      0.50      0.40      2286
+weighted avg       0.78      0.47      0.55      2286
+
+Confusion Matrix:
+[[ 910 1084]
+ [ 133  159]]
+
+[Test] Record 215:
+Total: 3389  |  Arrhythmic: 204  |  Predicted: 1826
+              precision    recall  f1-score   support
+
+           0       0.95      0.46      0.62      3185
+           1       0.07      0.59      0.12       204
+
+    accuracy                           0.47      3389
+   macro avg       0.51      0.53      0.37      3389
+weighted avg       0.89      0.47      0.59      3389
+
+Confusion Matrix:
+[[1479 1706]
+ [  84  120]]
+
+[Test] Record 217:
+Total: 2269  |  Arrhythmic: 2025  |  Predicted: 1619
+              precision    recall  f1-score   support
+
+           0       0.11      0.29      0.16       244
+           1       0.89      0.71      0.79      2025
+
+    accuracy                           0.67      2269
+   macro avg       0.50      0.50      0.48      2269
+weighted avg       0.81      0.67      0.73      2269
+
+Confusion Matrix:
+[[  71  173]
+ [ 579 1446]]
+
+[Test] Record 219:
+Total: 2301  |  Arrhythmic: 229  |  Predicted: 1216
+              precision    recall  f1-score   support
+
+           0       0.89      0.47      0.61      2072
+           1       0.09      0.48      0.15       229
+
+    accuracy                           0.47      2301
+   macro avg       0.49      0.47      0.38      2301
+weighted avg       0.81      0.47      0.57      2301
+
+Confusion Matrix:
+[[ 966 1106]
+ [ 119  110]]
+
+[Test] Record 220:
+Total: 2058  |  Arrhythmic: 114  |  Predicted: 299
+              precision    recall  f1-score   support
+
+           0       0.96      0.87      0.91      1944
+           1       0.16      0.43      0.24       114
+
+    accuracy                           0.85      2058
+   macro avg       0.56      0.65      0.58      2058
+weighted avg       0.92      0.85      0.88      2058
+
+Confusion Matrix:
+[[1694  250]
+ [  65   49]]
+
+[Test] Record 221:
+Total: 2451  |  Arrhythmic: 427  |  Predicted: 1836
+              precision    recall  f1-score   support
+
+           0       0.82      0.25      0.38      2024
+           1       0.17      0.74      0.28       427
+
+    accuracy                           0.34      2451
+   macro avg       0.50      0.50      0.33      2451
+weighted avg       0.71      0.34      0.36      2451
+
+Confusion Matrix:
+[[ 505 1519]
+ [ 110  317]]
+
+[Test] Record 222:
+Total: 2623  |  Arrhythmic: 359  |  Predicted: 1847
+              precision    recall  f1-score   support
+
+           0       0.86      0.30      0.44      2264
+           1       0.14      0.70      0.23       359
+
+    accuracy                           0.35      2623
+   macro avg       0.50      0.50      0.33      2623
+weighted avg       0.76      0.35      0.41      2623
+
+Confusion Matrix:
+[[ 669 1595]
+ [ 107  252]]
+
+[Test] Record 223:
+Total: 2632  |  Arrhythmic: 597  |  Predicted: 1015
+              precision    recall  f1-score   support
+
+           0       0.91      0.72      0.80      2035
+           1       0.44      0.75      0.56       597
+
+    accuracy                           0.73      2632
+   macro avg       0.68      0.74      0.68      2632
+weighted avg       0.80      0.73      0.75      2632
+
+Confusion Matrix:
+[[1469  566]
+ [ 148  449]]
+
+[Test] Record 228:
+Total: 2130  |  Arrhythmic: 452  |  Predicted: 781
+              precision    recall  f1-score   support
+
+           0       0.79      0.64      0.71      1678
+           1       0.22      0.38      0.28       452
+
+    accuracy                           0.58      2130
+   macro avg       0.51      0.51      0.49      2130
+weighted avg       0.67      0.58      0.62      2130
+
+Confusion Matrix:
+[[1069  609]
+ [ 280  172]]
+
+[Test] Record 230:
+Total: 2455  |  Arrhythmic: 209  |  Predicted: 733
+              precision    recall  f1-score   support
+
+           0       0.93      0.71      0.80      2246
+           1       0.11      0.38      0.17       209
+
+    accuracy                           0.68      2455
+   macro avg       0.52      0.55      0.49      2455
+weighted avg       0.86      0.68      0.75      2455
+
+Confusion Matrix:
+[[1593  653]
+ [ 129   80]]
+
+[Test] Record 231:
+Total: 2000  |  Arrhythmic: 441  |  Predicted: 1056
+              precision    recall  f1-score   support
+
+           0       0.94      0.57      0.71      1559
+           1       0.37      0.88      0.52       441
+
+    accuracy                           0.64      2000
+   macro avg       0.66      0.73      0.62      2000
+weighted avg       0.82      0.64      0.67      2000
+
+Confusion Matrix:
+[[892 667]
+ [ 52 389]]
+
+[Test] Record 232:
+Total: 1805  |  Arrhythmic: 1411  |  Predicted: 1568
+              precision    recall  f1-score   support
+
+           0       0.42      0.25      0.32       394
+           1       0.81      0.90      0.86      1411
+
+    accuracy                           0.76      1805
+   macro avg       0.62      0.58      0.59      1805
+weighted avg       0.73      0.76      0.74      1805
+
+Confusion Matrix:
+[[ 100  294]
+ [ 137 1274]]
+
+[Test] Record 233:
+Total: 3141  |  Arrhythmic: 917  |  Predicted: 2680
+              precision    recall  f1-score   support
+
+           0       0.74      0.15      0.25      2224
+           1       0.30      0.87      0.44       917
+
+    accuracy                           0.36      3141
+   macro avg       0.52      0.51      0.35      3141
+weighted avg       0.61      0.36      0.31      3141
+
+Confusion Matrix:
+[[ 342 1882]
+ [ 119  798]]
+
+[Test] Record 234:
+Total: 2753  |  Arrhythmic: 63  |  Predicted: 87
+              precision    recall  f1-score   support
+
+           0       0.99      0.98      0.98      2690
+           1       0.38      0.52      0.44        63
+
+    accuracy                           0.97      2753
+   macro avg       0.68      0.75      0.71      2753
+weighted avg       0.97      0.97      0.97      2753
+
+Confusion Matrix:
+[[2636   54]
+ [  30   33]]

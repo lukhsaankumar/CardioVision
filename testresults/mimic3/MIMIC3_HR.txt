@@ -1,0 +1,18 @@
+Using HR threshold: 160 bpm
+[Test] Record 3000003: 2519 samples, High-risk count: 0
+[Test] Record 3000105: 347 samples, High-risk count: 0
+
+Classification Report:
+              precision    recall  f1-score   support
+
+      Normal       1.00      1.00      1.00      2866
+   High Risk       0.00      0.00      0.00         0
+
+    accuracy                           1.00      2866
+   macro avg       0.50      0.50      0.50      2866
+weighted avg       1.00      1.00      1.00      2866
+
+Confusion Matrix:
+[[2866    0]
+ [   0    0]]
+Saved testing HR values and predictions.
