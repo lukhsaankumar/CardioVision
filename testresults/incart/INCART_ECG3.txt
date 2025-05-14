@@ -1,0 +1,16 @@
+✅ INCART Results:
+Classification Report:
+              precision    recall  f1-score   support
+
+         Low       0.96      0.60      0.74    153596
+         Med       0.03      0.69      0.06      1959
+        High       0.45      0.78      0.57     20225
+
+    accuracy                           0.62    175780
+   macro avg       0.48      0.69      0.46    175780
+weighted avg       0.89      0.62      0.71    175780
+
+Confusion Matrix:
+[[91664 43100 18832]
+ [  545  1355    59]
+ [ 3473  1001 15751]]

@@ -1,0 +1,54 @@
+🎯 OHCA Results:
+Classification Report:
+              precision    recall  f1-score   support
+
+         Low       0.00      0.00      0.00         0
+         Med       0.00      0.00      0.00         0
+        High       1.00      0.97      0.98      3574
+
+    accuracy                           0.97      3574
+   macro avg       0.33      0.32      0.33      3574
+weighted avg       1.00      0.97      0.98      3574
+
+Confusion Matrix:
+ [[   0    0    0]
+ [   0    0    0]
+ [  80   39 3455]]
+
+📋 Classified Segments:
+Low Classified Segments (80):
+  - 000026lug.json, Segment 2
+  - 000026lug.json, Segment 3
+  - 001688.json, Segment 2
+  - 001688.json, Segment 9
+  - 001709.json, Segment 3
+  - 003208.json, Segment 12
+  - 003208.json, Segment 13
+  - 003767.json, Segment 17
+  - 006961.json, Segment 4
+  - 006961.json, Segment 11
+  ... and 70 more
+Med Classified Segments (39):
+  - 000027nov.json, Segment 11
+  - 003767.json, Segment 4
+  - 003767.json, Segment 5
+  - 003767.json, Segment 6
+  - 003767.json, Segment 7
+  - 003767.json, Segment 10
+  - 003767.json, Segment 13
+  - 003767.json, Segment 14
+  - 009547.json, Segment 7
+  - 012250.json, Segment 4
+  ... and 29 more
+High Classified Segments (3455):
+  - 000011dic.json, Segment 0
+  - 000011dic.json, Segment 1
+  - 000011dic.json, Segment 2
+  - 000011dic.json, Segment 3
+  - 000011dic.json, Segment 4
+  - 000011dic.json, Segment 5
+  - 000011dic.json, Segment 6
+  - 000011dic.json, Segment 7
+  - 000011dic.json, Segment 8
+  - 000011dic.json, Segment 9
+  ... and 3445 more
