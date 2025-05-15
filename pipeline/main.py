@@ -56,11 +56,11 @@ def send_ecg(request: Request):
 
         results = predict_from_json(json_path, model_path)
         if results.count("High") == 1:
-            return {"status":"success","finalPrediction": "Medium Risk"}
+            return {"status":"success","finalPrediction": "Symptoms of Cardiac Arrest, Monitor"}
         elif results.count("Low") == len(results):
-            return {"status":"success","finalPrediction": "Low Risk"}
+            return {"status":"success","finalPrediction": "False Alarm"}
         elif results.count("High") >= 2:
-            return {"status":"success","finalPrediction": "High Risk"}
+            return {"status":"success","finalPrediction": "High Risk, Contact EMS"}
 
     except Exception as e:
         print(f"Error in /send_ecg: {e}")

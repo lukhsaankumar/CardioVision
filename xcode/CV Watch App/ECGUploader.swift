@@ -47,6 +47,7 @@ class ECGUploader: ObservableObject {
     // MARK: - Fetch and Send All Metrics
 
     func fetchAndSendAllMetrics() {
+        latestHeartRate = 101.78
         let dispatchGroup = DispatchGroup()
 
         dispatchGroup.enter()
@@ -63,13 +64,22 @@ class ECGUploader: ObservableObject {
 
         dispatchGroup.notify(queue: .main) {
             let payload: [String: Any] = [
+                // "hr": latestHeartRate
+                // "hrv": latestHRV
+                // "rhr": latestRHR
+                // "hhr": latestHHR
+                
                 // For Demo purposes, inputting values that guarantee a possible risk
                 "hr": 101.78,
                 "hrv": 29.28,
                 "rhr": 113.83,
                 "hhr": 2
             ]
-            self.sendJSON(to: "http://10.0.0.141:8000/send_all_metrics", payload: payload)
+            
+//            self.sendJSON(to: "http://10.0.0.141:8000/send_all_metrics", payload: payload)
+            self.sendJSON(to: "http://192.168.2.125:8000/send_all_metrics", payload: payload)
+            
+
             self.updateLastUpdated()
         }
     }
@@ -225,7 +235,7 @@ class ECGUploader: ObservableObject {
             if let obj = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any] {
                 print("Loaded test JSON keys: \(obj.keys)")
             }
-            guard let url = URL(string: "http://10.0.0.141:8000/send_ecg") else {
+            guard let url = URL(string: "http://192.168.2.125:8000/send_ecg") else {
                 print("Invalid send_ecg URL")
                 return
             }
