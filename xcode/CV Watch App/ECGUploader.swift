@@ -12,11 +12,9 @@ class ECGUploader: ObservableObject {
     @Published var latestHHR: Int = 0
     @Published var predictionResult: String = "Press button to predict"
     @Published var finalPrediction: String = ""
-    @Published var lastUpdated: String = "Never"
-    @Published var latestECGValues: [Double] = []    // <-- store ECG sample here
+    @Published var latestECGValues: [Double] = []
 
-    // MARK: - Public API
-
+// MARK: Request Authorization
     func requestAuthorization() {
         let typesToRead: Set = [
             HKObjectType.quantityType(forIdentifier: .heartRate)!,
@@ -44,11 +42,10 @@ class ECGUploader: ObservableObject {
         timer?.invalidate()
     }
 
-    // MARK: - Fetch and Send All Metrics
-
+    
     func fetchAndSendAllMetrics() {
-        latestHeartRate = 101.78
         let dispatchGroup = DispatchGroup()
+        print("inside")
 
         dispatchGroup.enter()
         fetchLatestHeartRate { dispatchGroup.leave() }
@@ -63,29 +60,31 @@ class ECGUploader: ObservableObject {
         fetchHighHeartRateEvents { dispatchGroup.leave() }
 
         dispatchGroup.notify(queue: .main) {
-            let payload: [String: Any] = [
-                // "hr": latestHeartRate
-                // "hrv": latestHRV
-                // "rhr": latestRHR
-                // "hhr": latestHHR
-                
-                // For Demo purposes, inputting values that guarantee a possible risk
-                "hr": 101.78,
-                "hrv": 29.28,
-                "rhr": 113.83,
-                "hhr": 2
-            ]
+            let payload: [String: Any]
+                        if AppSettings.demoMode {
+                            // Dummy values that guarantee possible risk, for demo/testing purposes
+                            payload = [
+                                "hr": 101.78,
+                                "hrv": 29.28,
+                                "rhr": 113.83,
+                                "hhr": 2
+                            ]
+                        } else {
+                            // Real measured values from HealthKit
+                            payload = [
+                                "hr": self.latestHeartRate,
+                                "hrv": self.latestHRV,
+                                "rhr": self.latestRHR,
+                                "hhr": self.latestHHR
+                            ]
+                        }
             
-//            self.sendJSON(to: "http://10.0.0.141:8000/send_all_metrics", payload: payload)
-            self.sendJSON(to: "http://192.168.2.125:8000/send_all_metrics", payload: payload)
-            
-
-            self.updateLastUpdated()
+            self.sendJSON(to: "http://10.0.0.141:8000/send_all_metrics", payload: payload)
+                       
         }
     }
 
-    // MARK: - Fetch Methods
-
+    // MARK: - Fetch Metrics
     func fetchLatestHeartRate(completion: @escaping () -> Void) {
         guard let heartRateType = HKQuantityType.quantityType(forIdentifier: .heartRate) else {
             completion(); return
@@ -178,8 +177,7 @@ class ECGUploader: ObservableObject {
         healthStore.execute(query)
     }
 
-    // MARK: - Fetch ECG Sample
-
+    
     func fetchECGSample() {
         print("Fetching latest ECG Sample...")
         guard HKHealthStore.isHealthDataAvailable() else {
@@ -188,6 +186,8 @@ class ECGUploader: ObservableObject {
         }
         let ecgType = HKObjectType.electrocardiogramType()
         let sort = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
+
+        // 1) Grab the latest ECG sample
         let query = HKSampleQuery(sampleType: ecgType,
                                   predicate: nil,
                                   limit: 1,
@@ -201,78 +201,137 @@ class ECGUploader: ObservableObject {
                 print("No ECG sample found")
                 return
             }
-            var values: [Double] = []
+
+            // 2) Turn it into a simple [Double]
+            var values = [Double]()
             let ecgQuery = HKElectrocardiogramQuery(ecgSample) { _, result in
                 switch result {
                 case .measurement(let m):
-                    if let v = m.quantity(for: .appleWatchSimilarToLeadI)?.doubleValue(for: .volt()) {
+                    if let v = m.quantity(for: .appleWatchSimilarToLeadI)?
+                                  .doubleValue(for: .volt()) {
                         values.append(v)
                     }
+
                 case .done:
                     DispatchQueue.main.async {
+                        
                         self.latestECGValues = values
-                        print("Retrieved ECG Sample: \(values.count) values")
+                        let rawHz = ecgSample.samplingFrequency?
+                                       .doubleValue(for: .hertz()) ?? 0
+                        let freq  = Int(rawHz)
+
+                        // ISO date string
+                        let iso = ISO8601DateFormatter()
+                                    .string(from: ecgSample.startDate)
+
+                        // sending to endpoint
+                        self.sendECGData(
+                            startTime: iso,
+                            samplingFrequency: freq,
+                            voltages: values
+                        )
                     }
+
                 case .error(let err):
                     print("Error processing ECG: \(err.localizedDescription)")
+
                 @unknown default:
                     print("Unknown ECG state")
                 }
             }
+
             self.healthStore.execute(ecgQuery)
         }
+
         healthStore.execute(query)
     }
-    
-    func sendTestECGSample() {
-        print("Sending test ECG JSON to server…")
-        guard let fileURL = Bundle.main.url(forResource: "204885", withExtension: "json") else {
-            print("File not found in bundle")
+
+    // MARK: Sending ECG data to FastAPI Server
+    private func sendECGData(startTime: String,
+                             samplingFrequency: Int,
+                             voltages: [Double]) {
+        let payload: [String: Any] = [
+            "startTime": startTime,
+            "samplingFrequency": samplingFrequency,
+            "voltages": voltages
+        ]
+
+        guard let url = URL(string: "http://10.0.0.141:8000/send_ecg"),
+              let data = try? JSONSerialization.data(withJSONObject: payload)
+        else {
+            print("Invalid ECG endpoint or JSON")
             return
         }
-        do {
-            let jsonData = try Data(contentsOf: fileURL)
-            if let obj = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any] {
-                print("Loaded test JSON keys: \(obj.keys)")
-            }
-            guard let url = URL(string: "http://192.168.2.125:8000/send_ecg") else {
-                print("Invalid send_ecg URL")
+
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.httpBody = data
+
+        URLSession.shared.dataTask(with: req) { respData, resp, err in
+            if let err = err {
+                print("ECG POST failed:", err.localizedDescription)
                 return
             }
-            var req = URLRequest(url: url)
-            req.httpMethod = "POST"
-            req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            req.httpBody = jsonData
-
-            URLSession.shared.dataTask(with: req) { data, resp, error in
-                if let e = error {
-                    print("Test ECG POST failed: \(e.localizedDescription)")
-                    return
-                }
-                if let code = (resp as? HTTPURLResponse)?.statusCode {
-                    print("[send_ecg] status: \(code)")
-                }
-                if let data = data,
-                   let s = String(data: data, encoding: .utf8) {
-                    print("[send_ecg] response: \(s)")
-                    // parse and extract finalPrediction
-                    if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                       let final = json["finalPrediction"] as? String {
-                        DispatchQueue.main.async {
-                            self.finalPrediction = final
-                        }
-                        print("finalPrediction: \(final)")
+            if let code = (resp as? HTTPURLResponse)?.statusCode {
+                print("[send_ecg] status:", code)
+            }
+            if let d = respData, let s = String(data: d, encoding: .utf8) {
+                print("[send_ecg] response:", s)
+                if let json = try? JSONSerialization.jsonObject(with: d) as? [String:Any],
+                   let fp = json["finalPrediction"] as? String {
+                    DispatchQueue.main.async {
+                        self.finalPrediction = fp
                     }
                 }
-            }.resume()
-
-        } catch {
-            print("Failed to read 204885.json: \(error)")
+            }
         }
+        .resume()
     }
 
-    // MARK: - Send JSON to Server
+    // For testing purposes, sending dummy data to the model
+    func sendTestECGSample() {
+        // Construct the URL for your test endpoint
+        guard let url = URL(string: "http://10.0.0.141:8000/send_test_ecg") else {
+            print("Invalid URL")
+            return
+        }
 
+        // Build a simple message
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("text/plain", forHTTPHeaderField: "Content-Type")
+        request.httpBody = "Testing".data(using: .utf8)
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("[send_test_ecg] error:", error.localizedDescription)
+                return
+            }
+            if let status = (response as? HTTPURLResponse)?.statusCode {
+                print("[send_test_ecg] status:", status)
+            }
+
+            // Parse the JSON payload and extract "finalPrediction"
+            guard let data = data else { return }
+            if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let final = json["finalPrediction"] as? String {
+                print("[send_test_ecg] finalPrediction:", final)
+                DispatchQueue.main.async {
+                    self.finalPrediction = final
+                }
+            } else if let text = String(data: data, encoding: .utf8) {
+                print("[send_test_ecg] response:", text)
+                DispatchQueue.main.async {
+                    self.finalPrediction = text
+                }
+            }
+        }.resume()
+    }
+
+
+
+    // MARK: - Send JSON to Server
     private func sendJSON(to urlString: String, payload: [String: Any]) {
         print("Sending to \(urlString) with payload: \(payload)")
 
@@ -303,14 +362,5 @@ class ECGUploader: ObservableObject {
                 print("[\(urlString)] Response: \(responseStr)")
             }
         }.resume()
-    }
-
-    // MARK: - Last Updated
-
-    private func updateLastUpdated() {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMM d, h:mm a"
-        self.lastUpdated = formatter.string(from: Date())
-        print("Last Updated: \(self.lastUpdated)")
     }
 }

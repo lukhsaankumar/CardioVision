@@ -28,7 +28,7 @@ struct ContentView: View {
                             .lineLimit(3)
 
                         Button("Understood") {
-                            // Dismiss disclaimer *and then* start everything
+                            // Dismiss disclaimer and start everything
                             withAnimation {
                                 showDisclaimer = false
                             }
@@ -95,9 +95,15 @@ struct ContentView: View {
                                     .padding(.top, 10)
 
                                 Button("ECG Recorded") {
-                                    uploader.sendTestECGSample()
+                                    if AppSettings.demoMode {
+                                        uploader.sendTestECGSample() // Use for real application purposes
+                                    } else {
+                                        uploader.fetchECGSample() // Use for testing and demo purposes
+
+                                    }
                                     showSpinner = true
                                     showHighRisk = true
+                                    
                                     // keep spinner for 3 seconds
                                     DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                                         showSpinner = false

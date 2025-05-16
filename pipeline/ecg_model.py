@@ -57,7 +57,7 @@ def predict_from_json(json_path, model_path):
     inputs = preprocess_single_json(json_path)
 
     if inputs is None:
-        return "❌ No valid segments to process."
+        return "No valid segments to process."
 
     inputs = inputs.to(device)
     with torch.no_grad():
@@ -67,3 +67,4 @@ def predict_from_json(json_path, model_path):
     label_map = {0: "Low", 1: "Med", 2: "High"}
     pred_labels = [label_map[p] for p in preds]
     return pred_labels
+

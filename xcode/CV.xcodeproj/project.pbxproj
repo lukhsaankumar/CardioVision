@@ -8,8 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		6C5D8BAA2DD1A12C0002B817 /* ECGUploader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C5D8BA92DD1A12C0002B817 /* ECGUploader.swift */; };
+		6CCD75202DD7EC9200EE3DFA /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CCD751F2DD7EC9200EE3DFA /* AppSettings.swift */; };
 		6CE29A9E2DAD74C300C44A26 /* CardioWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CE29A9D2DAD74C300C44A26 /* CardioWatchApp.swift */; };
-		6CF78C012DD2619900A51BD2 /* 204885.json in Resources */ = {isa = PBXBuildFile; fileRef = 6CF78C002DD2619900A51BD2 /* 204885.json */; };
 		6CFF37EF2DA27371006ABCEB /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CFF37EE2DA27371006ABCEB /* ContentView.swift */; };
 		6CFF37F12DA27372006ABCEB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6CFF37F02DA27372006ABCEB /* Assets.xcassets */; };
 		6CFF37F42DA27372006ABCEB /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6CFF37F32DA27372006ABCEB /* Preview Assets.xcassets */; };
@@ -18,8 +18,8 @@
 /* Begin PBXFileReference section */
 		6C5D8BA92DD1A12C0002B817 /* ECGUploader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ECGUploader.swift; sourceTree = "<group>"; };
 		6CBA48FE2DC80B110023B5D8 /* CV Watch App.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "CV Watch App.entitlements"; sourceTree = "<group>"; };
+		6CCD751F2DD7EC9200EE3DFA /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		6CE29A9D2DAD74C300C44A26 /* CardioWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardioWatchApp.swift; sourceTree = "<group>"; };
-		6CF78C002DD2619900A51BD2 /* 204885.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = 204885.json; sourceTree = "<group>"; };
 		6CFF37E72DA27371006ABCEB /* CV Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "CV Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		6CFF37EE2DA27371006ABCEB /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		6CFF37F02DA27372006ABCEB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -56,8 +56,8 @@
 		6CFF37EB2DA27371006ABCEB /* CV Watch App */ = {
 			isa = PBXGroup;
 			children = (
-				6CF78C002DD2619900A51BD2 /* 204885.json */,
 				6C5D8BA92DD1A12C0002B817 /* ECGUploader.swift */,
+				6CCD751F2DD7EC9200EE3DFA /* AppSettings.swift */,
 				6CBA48FE2DC80B110023B5D8 /* CV Watch App.entitlements */,
 				6CFF37EE2DA27371006ABCEB /* ContentView.swift */,
 				6CE29A9D2DAD74C300C44A26 /* CardioWatchApp.swift */,
@@ -135,7 +135,6 @@
 			files = (
 				6CFF37F42DA27372006ABCEB /* Preview Assets.xcassets in Resources */,
 				6CFF37F12DA27372006ABCEB /* Assets.xcassets in Resources */,
-				6CF78C012DD2619900A51BD2 /* 204885.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -148,6 +147,7 @@
 			files = (
 				6CFF37EF2DA27371006ABCEB /* ContentView.swift in Sources */,
 				6C5D8BAA2DD1A12C0002B817 /* ECGUploader.swift in Sources */,
+				6CCD75202DD7EC9200EE3DFA /* AppSettings.swift in Sources */,
 				6CE29A9E2DAD74C300C44A26 /* CardioWatchApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
