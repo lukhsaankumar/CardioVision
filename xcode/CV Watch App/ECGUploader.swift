@@ -2,6 +2,7 @@ import Foundation
 import HealthKit
 import Combine
 
+// ECGUploader: Manages HealthKit authorization, periodic data fetching, ECG sampling, and sending data to server
 class ECGUploader: ObservableObject {
     private let healthStore = HKHealthStore()
     private var timer: Timer?
@@ -14,7 +15,8 @@ class ECGUploader: ObservableObject {
     @Published var finalPrediction: String = ""
     @Published var latestECGValues: [Double] = []
 
-// MARK: Request Authorization
+    // MARK: - Request Authorization
+    // Ask user permission to read heart rate, HRV, resting heart rate, and ECG data
     func requestAuthorization() {
         let typesToRead: Set = [
             HKObjectType.quantityType(forIdentifier: .heartRate)!,
@@ -32,17 +34,21 @@ class ECGUploader: ObservableObject {
         }
     }
 
+    // MARK: - Start Periodic Data Fetch
     func startSendingData() {
+        // Fetch and send metrics every 5 seconds
         timer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { _ in
             self.fetchAndSendAllMetrics()
         }
     }
 
     deinit {
+        // Clean up timer when uploader is deallocated
         timer?.invalidate()
     }
 
-    
+    // MARK: - Fetch and Send Metrics
+    // Gather all metrics concurrently and send as JSON payload
     func fetchAndSendAllMetrics() {
         let dispatchGroup = DispatchGroup()
         print("inside")
@@ -61,42 +67,46 @@ class ECGUploader: ObservableObject {
 
         dispatchGroup.notify(queue: .main) {
             let payload: [String: Any]
-                        if AppSettings.demoMode {
-                            // Dummy values that guarantee possible risk, for demo/testing purposes
-                            payload = [
-                                "hr": 101.78,
-                                "hrv": 29.28,
-                                "rhr": 113.83,
-                                "hhr": 2
-                            ]
-                        } else {
-                            // Real measured values from HealthKit
-                            payload = [
-                                "hr": self.latestHeartRate,
-                                "hrv": self.latestHRV,
-                                "rhr": self.latestRHR,
-                                "hhr": self.latestHHR
-                            ]
-                        }
-            
+            if AppSettings.demoMode {
+                // Dummy values for demo/testing
+                payload = [
+                    "hr": 101.78,
+                    "hrv": 29.28,
+                    "rhr": 113.83,
+                    "hhr": 2
+                ]
+            } else {
+                // Real HealthKit measurements
+                payload = [
+                    "hr": self.latestHeartRate,
+                    "hrv": self.latestHRV,
+                    "rhr": self.latestRHR,
+                    "hhr": self.latestHHR
+                ]
+            }
+
             self.sendJSON(to: "http://10.0.0.141:8000/send_all_metrics", payload: payload)
-                       
         }
     }
 
-    // MARK: - Fetch Metrics
+    // MARK: - Fetch Metrics Helpers
+    // Fetch most recent heart rate sample
     func fetchLatestHeartRate(completion: @escaping () -> Void) {
         guard let heartRateType = HKQuantityType.quantityType(forIdentifier: .heartRate) else {
             completion(); return
         }
 
         let sort = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
-        let query = HKSampleQuery(sampleType: heartRateType,
-                                  predicate: nil,
-                                  limit: 1,
-                                  sortDescriptors: [sort]) { _, samples, _ in
+        let query = HKSampleQuery(
+            sampleType: heartRateType,
+            predicate: nil,
+            limit: 1,
+            sortDescriptors: [sort]
+        ) { _, samples, _ in
             if let sample = samples?.first as? HKQuantitySample {
-                let bpm = sample.quantity.doubleValue(for: HKUnit.count().unitDivided(by: .minute()))
+                let bpm = sample.quantity.doubleValue(
+                    for: HKUnit.count().unitDivided(by: .minute())
+                )
                 DispatchQueue.main.async {
                     self.latestHeartRate = bpm
                     print("HR: \(bpm) bpm")
@@ -104,19 +114,23 @@ class ECGUploader: ObservableObject {
             }
             completion()
         }
+
         healthStore.execute(query)
     }
 
+    // Fetch most recent HRV sample
     func fetchLatestHRV(completion: @escaping () -> Void) {
         guard let hrvType = HKQuantityType.quantityType(forIdentifier: .heartRateVariabilitySDNN) else {
             completion(); return
         }
 
         let sort = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
-        let query = HKSampleQuery(sampleType: hrvType,
-                                  predicate: nil,
-                                  limit: 1,
-                                  sortDescriptors: [sort]) { _, samples, _ in
+        let query = HKSampleQuery(
+            sampleType: hrvType,
+            predicate: nil,
+            limit: 1,
+            sortDescriptors: [sort]
+        ) { _, samples, _ in
             if let sample = samples?.first as? HKQuantitySample {
                 let ms = sample.quantity.doubleValue(for: HKUnit.secondUnit(with: .milli))
                 DispatchQueue.main.async {
@@ -126,21 +140,27 @@ class ECGUploader: ObservableObject {
             }
             completion()
         }
+
         healthStore.execute(query)
     }
 
+    // Fetch most recent resting heart rate sample
     func fetchRestingHeartRate(completion: @escaping () -> Void) {
         guard let rhrType = HKQuantityType.quantityType(forIdentifier: .restingHeartRate) else {
             completion(); return
         }
 
         let sort = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
-        let query = HKSampleQuery(sampleType: rhrType,
-                                  predicate: nil,
-                                  limit: 1,
-                                  sortDescriptors: [sort]) { _, samples, _ in
+        let query = HKSampleQuery(
+            sampleType: rhrType,
+            predicate: nil,
+            limit: 1,
+            sortDescriptors: [sort]
+        ) { _, samples, _ in
             if let sample = samples?.first as? HKQuantitySample {
-                let rhr = sample.quantity.doubleValue(for: HKUnit.count().unitDivided(by: .minute()))
+                let rhr = sample.quantity.doubleValue(
+                    for: HKUnit.count().unitDivided(by: .minute())
+                )
                 DispatchQueue.main.async {
                     self.latestRHR = rhr
                     print("RHR: \(rhr) bpm")
@@ -148,9 +168,11 @@ class ECGUploader: ObservableObject {
             }
             completion()
         }
+
         healthStore.execute(query)
     }
 
+    // Count high HR (>100 bpm) events in last hour
     func fetchHighHeartRateEvents(completion: @escaping () -> Void) {
         guard let hrType = HKQuantityType.quantityType(forIdentifier: .heartRate) else {
             completion(); return
@@ -158,14 +180,21 @@ class ECGUploader: ObservableObject {
 
         let oneHourAgo = Calendar.current.date(byAdding: .hour, value: -1, to: Date())!
         let predicate = HKQuery.predicateForSamples(withStart: oneHourAgo, end: Date(), options: [])
-
         let sort = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
-        let query = HKSampleQuery(sampleType: hrType,
-                                  predicate: predicate,
-                                  limit: HKObjectQueryNoLimit,
-                                  sortDescriptors: [sort]) { _, samples, _ in
-            let highHRCount = samples?.compactMap { $0 as? HKQuantitySample }
-                .filter { $0.quantity.doubleValue(for: HKUnit.count().unitDivided(by: .minute())) > 100 }
+
+        let query = HKSampleQuery(
+            sampleType: hrType,
+            predicate: predicate,
+            limit: HKObjectQueryNoLimit,
+            sortDescriptors: [sort]
+        ) { _, samples, _ in
+            let highHRCount = samples?
+                .compactMap { $0 as? HKQuantitySample }
+                .filter {
+                    $0.quantity.doubleValue(
+                        for: HKUnit.count().unitDivided(by: .minute())
+                    ) > 100
+                }
                 .count ?? 0
 
             DispatchQueue.main.async {
@@ -174,24 +203,28 @@ class ECGUploader: ObservableObject {
             }
             completion()
         }
+
         healthStore.execute(query)
     }
 
-    
+    // MARK: - ECG Sampling
+    // Grab latest ECG sample, convert to voltages, and send to server
     func fetchECGSample() {
         print("Fetching latest ECG Sample...")
         guard HKHealthStore.isHealthDataAvailable() else {
             print("Health data not available")
             return
         }
+
         let ecgType = HKObjectType.electrocardiogramType()
         let sort = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
 
-        // 1) Grab the latest ECG sample
-        let query = HKSampleQuery(sampleType: ecgType,
-                                  predicate: nil,
-                                  limit: 1,
-                                  sortDescriptors: [sort]) { [weak self] _, samples, error in
+        let query = HKSampleQuery(
+            sampleType: ecgType,
+            predicate: nil,
+            limit: 1,
+            sortDescriptors: [sort]
+        ) { [weak self] _, samples, error in
             guard let self = self else { return }
             if let error = error {
                 print("Error fetching ECG: \(error.localizedDescription)")
@@ -202,7 +235,6 @@ class ECGUploader: ObservableObject {
                 return
             }
 
-            // 2) Turn it into a simple [Double]
             var values = [Double]()
             let ecgQuery = HKElectrocardiogramQuery(ecgSample) { _, result in
                 switch result {
@@ -214,17 +246,13 @@ class ECGUploader: ObservableObject {
 
                 case .done:
                     DispatchQueue.main.async {
-                        
                         self.latestECGValues = values
                         let rawHz = ecgSample.samplingFrequency?
                                        .doubleValue(for: .hertz()) ?? 0
-                        let freq  = Int(rawHz)
-
-                        // ISO date string
+                        let freq = Int(rawHz)
                         let iso = ISO8601DateFormatter()
                                     .string(from: ecgSample.startDate)
 
-                        // sending to endpoint
                         self.sendECGData(
                             startTime: iso,
                             samplingFrequency: freq,
@@ -246,7 +274,7 @@ class ECGUploader: ObservableObject {
         healthStore.execute(query)
     }
 
-    // MARK: Sending ECG data to FastAPI Server
+    // MARK: - Send ECG Data
     private func sendECGData(startTime: String,
                              samplingFrequency: Int,
                              voltages: [Double]) {
@@ -270,14 +298,14 @@ class ECGUploader: ObservableObject {
 
         URLSession.shared.dataTask(with: req) { respData, resp, err in
             if let err = err {
-                print("ECG POST failed:", err.localizedDescription)
+                print("ECG POST failed: \(err.localizedDescription)")
                 return
             }
             if let code = (resp as? HTTPURLResponse)?.statusCode {
-                print("[send_ecg] status:", code)
+                print("[send_ecg] status: \(code)")
             }
             if let d = respData, let s = String(data: d, encoding: .utf8) {
-                print("[send_ecg] response:", s)
+                print("[send_ecg] response: \(s)")
                 if let json = try? JSONSerialization.jsonObject(with: d) as? [String:Any],
                    let fp = json["finalPrediction"] as? String {
                     DispatchQueue.main.async {
@@ -285,19 +313,16 @@ class ECGUploader: ObservableObject {
                     }
                 }
             }
-        }
-        .resume()
+        }.resume()
     }
 
-    // For testing purposes, sending dummy data to the model
+    // MARK: - Demo ECG Test
     func sendTestECGSample() {
-        // Construct the URL for your test endpoint
         guard let url = URL(string: "http://10.0.0.141:8000/send_test_ecg") else {
             print("Invalid URL")
             return
         }
 
-        // Build a simple message
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("text/plain", forHTTPHeaderField: "Content-Type")
@@ -305,23 +330,21 @@ class ECGUploader: ObservableObject {
 
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
-                print("[send_test_ecg] error:", error.localizedDescription)
+                print("[send_test_ecg] error: \(error.localizedDescription)")
                 return
             }
             if let status = (response as? HTTPURLResponse)?.statusCode {
-                print("[send_test_ecg] status:", status)
+                print("[send_test_ecg] status: \(status)")
             }
-
-            // Parse the JSON payload and extract "finalPrediction"
             guard let data = data else { return }
             if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                let final = json["finalPrediction"] as? String {
-                print("[send_test_ecg] finalPrediction:", final)
+                print("[send_test_ecg] finalPrediction: \(final)")
                 DispatchQueue.main.async {
                     self.finalPrediction = final
                 }
             } else if let text = String(data: data, encoding: .utf8) {
-                print("[send_test_ecg] response:", text)
+                print("[send_test_ecg] response: \(text)")
                 DispatchQueue.main.async {
                     self.finalPrediction = text
                 }
@@ -329,9 +352,7 @@ class ECGUploader: ObservableObject {
         }.resume()
     }
 
-
-
-    // MARK: - Send JSON to Server
+    // MARK: - Generic JSON Sender
     private func sendJSON(to urlString: String, payload: [String: Any]) {
         print("Sending to \(urlString) with payload: \(payload)")
 

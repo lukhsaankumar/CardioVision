@@ -1,24 +1,26 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var uploader = ECGUploader()
-    @State private var showHighRisk = false
-    @State private var showDisclaimer = true
-    @State private var showSpinner = false    // new state for spinner delay
+    @StateObject private var uploader = ECGUploader()  // tracks ECG and heart data
+    @State private var showHighRisk = false  // toggles detailed high risk UI
+    @State private var showDisclaimer = true  // controls whether disclaimer is shown
+    @State private var showSpinner = false  // shows spinner when processing ECG
 
     var body: some View {
         ZStack {
             if showDisclaimer {
-                // DISCLAIMER SCREEN
+                // show disclaimer screen
                 Color.black
                     .ignoresSafeArea()
 
                 ScrollView {
                     VStack(spacing: 12) {
+                        // warning icon
                         Image(systemName: "exclamationmark.triangle.fill")
                             .font(.system(size: 36))
                             .foregroundColor(.red)
 
+                        // disclaimer text
                         Text("Disclaimer: This is only an Aid, not a replacement for a Professional Medical Diagnosis")
                             .font(.system(size: 19, weight: .semibold))
                             .foregroundColor(.white)
@@ -27,36 +29,35 @@ struct ContentView: View {
                             .minimumScaleFactor(0.4)
                             .lineLimit(3)
 
+                        // button to proceed after reading disclaimer
                         Button("Understood") {
-                            // Dismiss disclaimer and start everything
                             withAnimation {
-                                showDisclaimer = false
+                                showDisclaimer = false  // hide disclaimer
                             }
-                            uploader.requestAuthorization()
-                            uploader.startSendingData()
+                            uploader.requestAuthorization()  // ask for HealthKit permissions
+                            uploader.startSendingData()  // begin periodic data updates
                         }
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(.white)
                         .padding(.vertical, 6)
                         .padding(.horizontal, 16)
-                        
                     }
                     .padding(8)
                 }
-
             } else {
-                // MAIN CONTENT
+                // show main app content
                 Color.black
                     .ignoresSafeArea()
 
                 ScrollView {
                     VStack(spacing: 16) {
+                        // app title
                         Text("CardioVision")
                             .font(.system(size: 22, weight: .bold))
                             .foregroundColor(.white)
                             .padding(.top, 10)
 
-                        // Latest Heart Rate
+                        // show latest heart rate
                         VStack {
                             Text("Latest Heart Rate")
                                 .font(.system(size: 15, weight: .medium))
@@ -69,7 +70,7 @@ struct ContentView: View {
                                 .padding(.horizontal)
                         }
 
-                        // Initial Prediction
+                        // show initial prediction result
                         VStack {
                             Text("Prediction Result")
                                 .font(.system(size: 15, weight: .medium))
@@ -85,7 +86,7 @@ struct ContentView: View {
                                 .padding(.horizontal, 8)
                         }
 
-                        // High-risk flow
+                        // if risk possible ask for ECG recording
                         if formatInitialPredictionResult(uploader.predictionResult).contains("Possible Risk") {
                             VStack(spacing: 8) {
                                 Text("Please record an ECG for detailed heart health analysis")
@@ -96,15 +97,14 @@ struct ContentView: View {
 
                                 Button("ECG Recorded") {
                                     if AppSettings.demoMode {
-                                        uploader.sendTestECGSample() // Use for real application purposes
+                                        uploader.sendTestECGSample()  // use demo data
                                     } else {
-                                        uploader.fetchECGSample() // Use for testing and demo purposes
-
+                                        uploader.fetchECGSample()  // grab real ECG data
                                     }
-                                    showSpinner = true
-                                    showHighRisk = true
-                                    
-                                    // keep spinner for 3 seconds
+                                    showSpinner = true  // show spinner while processing
+                                    showHighRisk = true  // show high risk section
+
+                                    // stop spinner after 3 seconds
                                     DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                                         showSpinner = false
                                     }
@@ -115,6 +115,7 @@ struct ContentView: View {
                                 .padding(.horizontal, 10)
                                 .cornerRadius(27)
 
+                                // if user recorded ECG show spinner or final prediction
                                 if showHighRisk {
                                     if showSpinner {
                                         ProgressView()
@@ -140,29 +141,25 @@ struct ContentView: View {
         }
     }
 
-    // MARK: - Helpers
-
+    // parse initial prediction from JSON string
     private func formatInitialPredictionResult(_ jsonString: String) -> String {
         guard let data = jsonString.data(using: .utf8) else {
             return "No Risk"
         }
-        if
-            let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-            let prediction = json["initialPrediction"] as? String
-        {
+        if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+           let prediction = json["initialPrediction"] as? String {
             return prediction
         }
         return "No Risk"
     }
 
+    // choose text color based on prediction value
     private func predictionColor(for jsonString: String) -> Color {
         guard let data = jsonString.data(using: .utf8) else {
             return .green
         }
-        if
-            let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-            let prediction = json["initialPrediction"] as? String
-        {
+        if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+           let prediction = json["initialPrediction"] as? String {
             return prediction.contains("No Risk") ? .green : .orange
         }
         return .green
