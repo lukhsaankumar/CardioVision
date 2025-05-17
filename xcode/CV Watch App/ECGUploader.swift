@@ -85,7 +85,7 @@ class ECGUploader: ObservableObject {
                 ]
             }
 
-            self.sendJSON(to: "http://10.0.0.141:8000/send_all_metrics", payload: payload)
+            self.sendJSON(to: "http://[YOUR IP ADDRESS]:8000/send_all_metrics", payload: payload)
         }
     }
 
@@ -284,7 +284,7 @@ class ECGUploader: ObservableObject {
             "voltages": voltages
         ]
 
-        guard let url = URL(string: "http://10.0.0.141:8000/send_ecg"),
+        guard let url = URL(string: "http://[YOUR IP ADDRESS]:8000/send_ecg"),
               let data = try? JSONSerialization.data(withJSONObject: payload)
         else {
             print("Invalid ECG endpoint or JSON")
@@ -318,7 +318,7 @@ class ECGUploader: ObservableObject {
 
     // MARK: - Demo ECG Test
     func sendTestECGSample() {
-        guard let url = URL(string: "http://10.0.0.141:8000/send_test_ecg") else {
+        guard let url = URL(string: "http://[YOUR IP ADDRESS]:8000/send_test_ecg") else {
             print("Invalid URL")
             return
         }
