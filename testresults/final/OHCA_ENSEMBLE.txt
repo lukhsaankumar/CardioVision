@@ -1,0 +1,18 @@
+Results of healthkit/test_hk_final_OHCA.py
+
+OHCA Results:
+Classification Report:
+              precision    recall  f1-score   support
+
+         Low       0.00      0.00      0.00         0
+         Med       0.00      0.00      0.00         0
+        High       0.99      0.98      0.98      3574
+
+    accuracy                           0.98      3574
+   macro avg       0.33      0.33      0.33      3574
+weighted avg       0.99      0.98      0.98      3574
+
+Confusion Matrix:
+[[   0    0    0]
+ [   0    0    0]
+ [  30   20 3524]]

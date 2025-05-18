@@ -1,37 +1,29 @@
 import warnings
-warnings.filterwarnings("ignore", category=UserWarning, module="sklearn.utils")
-import json
-import os
+warnings.filterwarnings("ignore", category=RuntimeWarning)
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader, TensorDataset
-import wfdb
-from tqdm import tqdm
-from scipy.signal import find_peaks
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-from sklearn.model_selection import train_test_split
+from torch.utils.data import DataLoader, TensorDataset, random_split
 from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import accuracy_score, confusion_matrix
+import pandas as pd
+import wfdb
+import json
 import joblib
+from tqdm import tqdm
+import os
+import glob
+from imblearn.over_sampling import SMOTE
 
-# === Load All Submodels ===
-with open("models/heartrate/hr_model2.json") as f:
-    hr_model_data = json.load(f)
-hrv_model = joblib.load("models/heartratevariability/hrv_ensemble_model.pkl")
-scaler_hrv = joblib.load("models/heartratevariability/scaler.pkl")
-rhr_model = joblib.load("models/restingheartrate/rhr_model.pkl")
-scaler_rhr = joblib.load("models/restingheartrate/scaler.pkl")
-hhr_model = joblib.load("models/highheartrateevents/rf_hhr2_model.pkl")
-
-# ECG model (LSTM, to be replaced with CNN-LSTM if better)
-class LSTMModel(nn.Module):
-    def __init__(self, input_size=1, hidden_size=128, num_layers=3, output_size=3):
-        super(LSTMModel, self).__init__()
-        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
-        self.dropout = nn.Dropout(0.3)
-        self.fc = nn.Linear(hidden_size, output_size)
+# BiLSTM Model
+class BiLSTMModel(nn.Module):
+    def __init__(self, input_size=1, hidden_size=128, num_layers=3, output_size=3, dropout=0.3):
+        super(BiLSTMModel, self).__init__()
+        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True,
+                            dropout=dropout if num_layers > 1 else 0, bidirectional=True)
+        self.dropout = nn.Dropout(dropout)
+        self.fc = nn.Linear(hidden_size * 2, output_size)
 
     def forward(self, x):
         x, _ = self.lstm(x)
@@ -39,243 +31,296 @@ class LSTMModel(nn.Module):
         x = self.fc(x)
         return x
 
-ecg_model = LSTMModel()
-ecg_model.load_state_dict(torch.load("models/ecg/lstm_model_multiclass.pth", map_location=torch.device('cpu')))
+# Focal Loss with Class Weights
+class FocalLoss(nn.Module):
+    def __init__(self, alpha=0.95, gamma=2.0, class_weights=None, reduction='mean'):
+        super(FocalLoss, self).__init__()
+        self.alpha = alpha
+        self.gamma = gamma
+        self.class_weights = class_weights if class_weights is not None else torch.ones(3)
+        self.reduction = reduction
+
+    def forward(self, inputs, targets):
+        BCE_loss = nn.CrossEntropyLoss(weight=self.class_weights, reduction='none')(inputs, targets)
+        pt = torch.exp(-BCE_loss)
+        F_loss = self.alpha * (1 - pt) ** self.gamma * BCE_loss
+        if self.reduction == 'mean':
+            return F_loss.mean()
+        elif self.reduction == 'sum':
+            return F_loss.sum()
+        else:
+            return F_loss
+
+# Load Models
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+ecg_model = BiLSTMModel(input_size=1, hidden_size=128, num_layers=3, output_size=3).to(device)
+try:
+    ecg_model.load_state_dict(torch.load("../CardioVision/models/ecg/bilstm_model_multiclass.pth", map_location=device))
+except FileNotFoundError:
+    print("❌ BiLSTM model not found.")
+    exit(1)
 ecg_model.eval()
 
-# === Meta-Learner Model ===
-class EnsembleMetaLearner(nn.Module):
-    def __init__(self, input_size=15, hidden_size=64, output_size=3):  # 3 (LSTM) + 4 * 3 (binary models)
-        super(EnsembleMetaLearner, self).__init__()
-        self.fc1 = nn.Linear(input_size, hidden_size)
-        self.relu = nn.ReLU()
-        self.dropout = nn.Dropout(0.3)
-        self.fc2 = nn.Linear(hidden_size, output_size)
+# Load submodels for FN analysis
+with open("../CardioVision/models/heartrate/hr_model2.json") as f:
+    hr_model_data = json.load(f)
+hrv_model = joblib.load("../CardioVision/models/heartratevariability/hrv_ensemble_model.pkl")
+scaler_hrv = joblib.load("../CardioVision/models/heartratevariability/scaler.pkl")
+rhr_model = joblib.load("../CardioVision/models/restingheartrate/rhr_model.pkl")
+scaler_rhr = joblib.load("../CardioVision/models/restingheartrate/scaler.pkl")
+hhr_model = joblib.load("../CardioVision/models/highheartrateevents/rf_hhr2_model.pkl")
 
-    def forward(self, x):
-        x = self.relu(self.fc1(x))
-        x = self.dropout(x)
-        x = self.fc2(x)
-        return x
-
-# === Paths and Label Maps ===
-paths = {
-    "mitdb": "data/mitdb",
-    "holter": "data/holter",
-    "incart": "data/incart/files"
-}
-low_syms = ['N', 'L', 'R', 'e', 'j']
-med_syms = ['A', 'S', 'a', 'J', '?']
-high_syms = ['V', 'F', 'E']
-symbol_to_label = {s: 0 for s in low_syms}
-symbol_to_label.update({s: 1 for s in med_syms})
-symbol_to_label.update({s: 2 for s in high_syms})
-
-# === Helper Functions ===
-def get_r_peaks(signal, fs):
-    peaks, _ = find_peaks(signal, distance=fs * 0.6)
-    return peaks
-
-def extract_hr(signal, fs):
-    r_peaks = get_r_peaks(signal, fs)
-    rr = np.diff(r_peaks) / fs
-    hr_series = 60 / (rr + 1e-6)
-    return hr_series
-
-def compute_hrv_features(rr_intervals):
-    rr_intervals = rr_intervals[(rr_intervals > 300) & (rr_intervals < 2000)]
-    if len(rr_intervals) < 2:
-        return np.zeros(14)  # Ensure 14 features
-    diff_rr = np.diff(rr_intervals)
-    features = [
-        np.sqrt(np.mean(diff_rr ** 2)),  # RMSSD
-        np.std(rr_intervals),            # SDNN
-        np.mean(rr_intervals),
-        np.median(rr_intervals),
-        np.percentile(rr_intervals, 25),
-        np.percentile(rr_intervals, 75),
-        np.max(diff_rr),
-        np.min(diff_rr),
-        np.mean(diff_rr),
-        np.std(diff_rr),
-        np.sum(np.abs(diff_rr) > 50) / len(diff_rr),  # pNN50
-        len(rr_intervals),
-        np.min(rr_intervals),
-        np.max(rr_intervals)
-    ]
-    return np.array(features)
-
-def extract_ensemble_features(path, label_map, dataset_type, lstm_weight=0.8):
-    X, y = [], []
+# Data Loading
+def load_record(record_path):
     try:
-        rec = wfdb.rdrecord(path)
-        ann = wfdb.rdann(path, 'atr')
-        signal = rec.p_signal[:, 0]
-        fs = rec.fs
-        r_peaks = ann.sample
-        syms = ann.symbol
-
-        hr_series = extract_hr(signal, fs)
-        rr_intervals = np.diff(r_peaks) / fs * 1000
-        hrv_feat = compute_hrv_features(rr_intervals)
-
-        for idx, sym in enumerate(syms):
-            if sym not in label_map:
-                continue
-
-            # Adaptive Segment Extraction
-            beat = r_peaks[idx] if idx < len(r_peaks) else None
-            if beat is None:
-                continue
-
-            start = max(0, beat - 125)
-            end = min(len(signal), beat + 125)
-            segment = signal[start:end]
-
-            if len(segment) < 50:
-                continue
-
-            # ECG Prediction (LSTM - 3-class)
-            if len(segment) < 250:
-                segment = np.pad(segment, (0, 250 - len(segment)), mode='constant')
-            segment = StandardScaler().fit_transform(segment.reshape(-1, 1)).reshape(-1)  # Normalize
-            ecg_tensor = torch.tensor(segment, dtype=torch.float32).unsqueeze(0).unsqueeze(-1)
-            with torch.no_grad():
-                ecg_output = torch.softmax(ecg_model(ecg_tensor), dim=-1).numpy().flatten()  # [p_low, p_med, p_high]
-            ecg_pred = np.argmax(ecg_output)
-            ecg_conf = ecg_output[ecg_pred]
-
-            # HR Model (Binary - Arrhythmia Detection)
-            hr_val = hr_series[min(idx, len(hr_series) - 1)] if len(hr_series) > idx else 0
-            pred_hr = 1 if hr_val > 120 else 0
-            hr_probs = [0, 0.5, 0.5] if pred_hr == 1 else [1, 0, 0]  # Map to 3-class
-
-            # HHR Model (Sustained High HR)
-            sustained_high_hr = int(np.all(hr_series[max(0, idx - 10):idx] > 150))
-            pred_hhr = 1 if sustained_high_hr else 0
-            hhr_probs = [0, 0.5, 0.5] if pred_hhr == 1 else [1, 0, 0]
-
-            # RHR Model (Binary - Arrhythmia Detection)
-            if len(rr_intervals) > 0:
-                rhr = 60000 / np.mean(rr_intervals)
-                pred_rhr = 1 if rhr > 75 else 0
-                rhr_probs = [0, 0.5, 0.5] if pred_rhr == 1 else [1, 0, 0]
-            else:
-                rhr_probs = [1, 0, 0]
-
-            # HRV Model (Binary - Arrhythmia Detection)
-            scaled_hrv = scaler_hrv.transform([hrv_feat]) if len(hrv_feat) == 14 else np.zeros((1, 14))
-            hrv_pred_binary = int(hrv_model.predict(scaled_hrv)[0])
-            hrv_probs = [0, 0.5, 0.5] if hrv_pred_binary == 1 else [1, 0, 0]
-
-            # Combine probabilities with weights
-            binary_weight = (1 - lstm_weight) / 4  # Equal weight for each binary model
-            combined_probs = (
-                lstm_weight * ecg_output +
-                binary_weight * np.array(hr_probs) +
-                binary_weight * np.array(hhr_probs) +
-                binary_weight * np.array(rhr_probs) +
-                binary_weight * np.array(hrv_probs)
-            )
-            features = np.concatenate([ecg_output, hr_probs, hhr_probs, rhr_probs, hrv_probs])
-
-            X.append(features)
-            y.append(label_map[sym])
+        record = wfdb.rdrecord(record_path)
+        annotation = wfdb.rdann(record_path, 'atr')
+        signal = record.p_signal[:, 0]
+        if np.any(np.isnan(signal)) or np.any(np.isinf(signal)):
+            print(f"⚠️ Imputing NaN/Inf in signal for record {os.path.basename(record_path)}")
+            signal = np.nan_to_num(signal, nan=np.mean(signal[~np.isnan(signal)]), 
+                                   posinf=np.max(signal[~np.isinf(signal)]), 
+                                   neginf=np.min(signal[~np.isinf(signal)]))
+        return signal, annotation.symbol, annotation.sample
     except Exception as e:
-        print(f"⚠️ Skipped {path}: {e}")
+        print(f"⚠️ Skipped {record_path}: {e}")
+        return None, None, None
 
-    return X, y
+def segment_beat(signal, peak, window_size=250, fs=360):
+    start = max(0, peak - window_size // 2)
+    end = min(len(signal), peak + window_size // 2)
+    segment = signal[start:end]
+    if len(segment) < window_size:
+        segment = np.pad(segment, (0, window_size - len(segment)), mode='constant')
+    return segment[:window_size]
 
-# === Process Selected Records with Progress Bar ===
-X_all, y_all = [], []
-record_paths = []
+def extract_feedback_samples():
+    mit_records = glob.glob("../CardioVision/data/mitdb/*.dat")
+    holter_records = [r for r in glob.glob("../CardioVision/data/holter/*.dat") 
+                     if not any(x in r for x in ['33', '37', '38', '39', '40', '42', '43', '44', '47', '48', '50'])]
+    incart_records = glob.glob("../CardioVision/data/incart/files/*.dat")
+    all_records = mit_records + holter_records + incart_records
+    low_risk = ['N', 'L', 'R', 'e', 'j']
+    med_risk = ['A', 'a', 'J', 'S']
+    high_risk = ['V', 'F', 'E']
+    symbol_to_label = {s: 0 for s in low_risk}
+    symbol_to_label.update({s: 1 for s in med_risk})
+    symbol_to_label.update({s: 2 for s in high_risk})
 
-for rec_dir in paths:
-    for rec in os.listdir(paths[rec_dir]):
-        if rec.endswith(".hea"):
-            record_paths.append((os.path.join(paths[rec_dir], rec.replace(".hea", "")), rec_dir))
+    feedback_samples = []
+    fn_submodel_stats = {'hr': [], 'hrv': [], 'rhr': [], 'hhr': []}
+    sample_counts = {0: 0, 1: 0, 2: 0}
+    max_samples_per_class = 8000
+    total_high = 0
+    high_fn = 0
+    total_fn = 0
 
-print("🔄 Extracting Features from Records...")
-for record_path, dataset_type in tqdm(record_paths, desc="Processing Records"):
-    X, y = extract_ensemble_features(record_path, symbol_to_label, dataset_type)
-    X_all.extend(X)
-    y_all.extend(y)
+    print("🔄 Extracting Feedback Samples...")
+    for record_path in tqdm(all_records, desc="Processing Records"):
+        signal, symbols, peaks = load_record(record_path.replace('.dat', ''))
+        if signal is None:
+            continue
+        fs = 360
+        scaler = StandardScaler()
 
-# === Train Meta-Learner ===
-if len(X_all) == 0:
-    print("⚠️ No training data collected. Ensure the records are not being skipped.")
-else:
-    X = np.array(X_all)
-    y = np.array(y_all)
-    print(f"\n✅ Collected {len(X)} samples for training meta-learner.")
+        hr_series = []
+        for i in range(1, len(peaks)):
+            rr = (peaks[i] - peaks[i-1]) / fs
+            if rr > 0 and np.isfinite(rr):
+                hr_series.append(60 / rr)
+        hr_series = np.array(hr_series) if hr_series else np.array([60])
 
-    # Split data
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
+        for peak, symbol in zip(peaks, symbols):
+            if symbol not in symbol_to_label:
+                continue
+            label = symbol_to_label[symbol]
+            if sample_counts[label] >= max_samples_per_class:
+                continue
+            if label == 2:
+                total_high += 1
+            segment = segment_beat(signal, peak, window_size=250, fs=fs)
+            if len(segment) != 250:
+                continue
 
-    # Compute class weights
-    class_counts = np.bincount(y)
-    class_weights = 1.0 / class_counts
-    class_weights = class_weights / class_weights.sum() * len(class_counts)
-    class_weights = torch.tensor(class_weights, dtype=torch.float32)
+            segment_normalized = scaler.fit_transform(segment.reshape(-1, 1)).reshape(-1)
+            if np.any(np.isnan(segment_normalized)) or np.any(np.isinf(segment_normalized)):
+                continue
 
-    # Convert to tensors
-    X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
-    y_train_tensor = torch.tensor(y_train, dtype=torch.long)
-    X_test_tensor = torch.tensor(X_test, dtype=torch.float32)
-    y_test_tensor = torch.tensor(y_test, dtype=torch.long)
+            ecg_tensor = torch.tensor(segment_normalized, dtype=torch.float32).unsqueeze(0).unsqueeze(-1).to(device)
+            with torch.no_grad():
+                ecg_output = torch.softmax(ecg_model(ecg_tensor), dim=-1).cpu().numpy().flatten()
+            if np.any(np.isnan(ecg_output)):
+                continue
+            ecg_pred = np.argmax(ecg_output)
+            pred_confidence = ecg_output[label]
+            high_confidence = ecg_output[2] if label != 2 else 0
 
-    # Create DataLoader
-    train_dataset = TensorDataset(X_train_tensor, y_train_tensor)
-    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+            # Submodel predictions for all samples
+            idx = min(len(hr_series) - 1, len(peaks) - 2)
+            hr_val = hr_series[idx] if idx >= 0 else 60
+            pred_hr = 1 if hr_val > 100 else 0
 
-    # Initialize meta-learner
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    meta_learner = EnsembleMetaLearner(input_size=X.shape[1]).to(device)
-    criterion = nn.CrossEntropyLoss(weight=class_weights.to(device))
-    optimizer = optim.Adam(meta_learner.parameters(), lr=1e-3)
+            sustained_high_hr = int(np.all(hr_series[max(0, idx-10):idx+1] > 130)) if idx > 0 else 0
+            pred_hhr = 1 if sustained_high_hr else 0
 
-    # Train meta-learner
-    print("\n🔄 Training Meta-Learner...")
-    for epoch in range(10):
-        meta_learner.train()
-        total_loss = 0
-        for X_batch, y_batch in tqdm(train_loader, desc=f"Epoch [{epoch+1}/10]"):
-            X_batch, y_batch = X_batch.to(device), y_batch.to(device)
-            optimizer.zero_grad()
-            outputs = meta_learner(X_batch)
-            loss = criterion(outputs, y_batch)
-            loss.backward()
-            torch.nn.utils.clip_grad_norm_(meta_learner.parameters(), max_norm=1.0)
-            optimizer.step()
-            total_loss += loss.item()
+            rhr = np.mean(hr_series) if len(hr_series) > 0 else 60
+            pred_rhr = 1 if rhr > 70 else 0
 
-        # Evaluate
-        meta_learner.eval()
-        correct = 0
-        class_correct = [0] * 3
-        class_total = [0] * 3
-        with torch.no_grad():
-            outputs = meta_learner(X_test_tensor.to(device))
-            predictions = torch.argmax(outputs, dim=1).cpu()
-            correct += (predictions == y_test_tensor).sum().item()
-            for label, pred in zip(y_test_tensor, predictions):
-                class_correct[label] += (pred == label).item()
-                class_total[label] += 1
+            rr_intervals = np.diff(peaks) / fs * 1000
+            hrv_features = np.zeros(14)
+            if len(rr_intervals) >= 2:
+                rr_intervals = rr_intervals[(rr_intervals > 300) & (rr_intervals < 2000)]
+                if len(rr_intervals) >= 2:
+                    diff_rr = np.diff(rr_intervals)
+                    hrv_features = [
+                        np.sqrt(np.mean(diff_rr ** 2)),
+                        np.std(rr_intervals),
+                        np.mean(rr_intervals),
+                        np.median(rr_intervals),
+                        np.percentile(rr_intervals, 25),
+                        np.percentile(rr_intervals, 75),
+                        np.max(diff_rr) if len(diff_rr) > 0 else 0,
+                        np.min(diff_rr) if len(diff_rr) > 0 else 0,
+                        np.mean(diff_rr) if len(diff_rr) > 0 else 0,
+                        np.std(diff_rr) if len(diff_rr) > 0 else 0,
+                        np.sum(np.abs(diff_rr) > 50) / len(diff_rr) if len(diff_rr) > 0 else 0,
+                        len(rr_intervals),
+                        np.min(rr_intervals) if len(rr_intervals) > 0 else 0,
+                        np.max(rr_intervals) if len(rr_intervals) > 0 else 0
+                    ]
+            scaled_hrv = scaler_hrv.transform([hrv_features]) if len(hrv_features) == 14 else np.zeros((1, 14))
+            hrv_pred_binary = int(hrv_model.predict(pd.DataFrame(scaled_hrv, columns=[
+                'rmssd', 'sdnn', 'mean_rr', 'median_rr', 'p25', 'p75', 'max_diff', 'min_diff',
+                'mean_diff', 'std_diff', 'pnn50', 'nn', 'min_rr', 'max_rr']))[0]) if len(hrv_features) == 14 else 0
 
-        accuracy = 100 * correct / len(y_test_tensor)
-        class_accuracies = [100 * class_correct[i] / class_total[i] if class_total[i] > 0 else 0 for i in range(3)]
-        print(f"📊 Epoch [{epoch+1}/10] Loss: {total_loss/len(train_loader):.4f} | Accuracy: {accuracy:.2f}%")
-        print(f"   Class Accuracies - Low: {class_accuracies[0]:.2f}%, Med: {class_accuracies[1]:.2f}%, High: {class_accuracies[2]:.2f}%")
+            # Collect samples with reduced submodel influence
+            if label == 2 and ecg_pred != 2:  # High-risk FN
+                # Only include if at least one submodel flags abnormality
+                if pred_hr or hrv_pred_binary or pred_rhr or pred_hhr:
+                    high_fn += 1
+                    total_fn += 1
+                    feedback_samples.append((segment_normalized, label))
+                    sample_counts[label] += 1
+                    fn_submodel_stats['hr'].append(pred_hr)
+                    fn_submodel_stats['hhr'].append(pred_hhr)
+                    fn_submodel_stats['rhr'].append(pred_rhr)
+                    fn_submodel_stats['hrv'].append(hrv_pred_binary)
+            elif label != ecg_pred or (label == ecg_pred and pred_confidence < 0.5):  # Misclassifications or low-confidence correct
+                # Exclude Low/Med if submodels strongly predict High-risk (e.g., HRV and HHR both abnormal)
+                if label in [0, 1] and ecg_pred == 2 and high_confidence < 0.9 and not (hrv_pred_binary and pred_hhr):
+                    total_fn += 1
+                    feedback_samples.append((segment_normalized, label))
+                    sample_counts[label] += 1
+                elif label == 2 and ecg_pred == 2:  # Correct High-risk
+                    feedback_samples.append((segment_normalized, label))
+                    sample_counts[label] += 1
+            elif label == ecg_pred and pred_confidence >= 0.5:  # High-confidence correct
+                if np.random.random() < 0.03:  # 3% chance to include
+                    feedback_samples.append((segment_normalized, label))
+                    sample_counts[label] += 1
 
-    # Final Evaluation
-    meta_learner.eval()
+    print(f"\n✅ Total High-risk Samples: {total_high}, High-risk FNs: {high_fn} ({high_fn/total_high*100:.2f}%)")
+    print("Submodel FN Trends:")
+    for model in fn_submodel_stats:
+        abnormal_rate = np.mean(fn_submodel_stats[model]) if fn_submodel_stats[model] else 0
+        print(f"  {model.upper()}: Abnormal in {abnormal_rate*100:.2f}% of High-risk FNs")
+    print(f"Total False Negatives: {total_fn}")
+    print(f"Feedback Samples per Class: Low: {sample_counts[0]}, Med: {sample_counts[1]}, High: {sample_counts[2]}")
+
+    return feedback_samples
+
+# Collect Feedback Samples
+feedback_samples = extract_feedback_samples()
+if not feedback_samples:
+    print("❌ No feedback samples collected.")
+    exit(1)
+
+print(f"\n✅ Collected {len(feedback_samples)} feedback samples for fine-tuning.")
+
+# Prepare Training Data
+segments = np.array([seg for seg, _ in feedback_samples])
+labels = np.array([lbl for _, lbl in feedback_samples])
+
+# Split into train and validation sets
+total_samples = len(segments)
+train_size = int(0.9 * total_samples)
+val_size = total_samples - train_size
+train_dataset = TensorDataset(torch.tensor(segments[:train_size], dtype=torch.float32).unsqueeze(-1).to(device),
+                              torch.tensor(labels[:train_size], dtype=torch.long).to(device))
+val_dataset = TensorDataset(torch.tensor(segments[train_size:], dtype=torch.float32).unsqueeze(-1).to(device),
+                            torch.tensor(labels[train_size:], dtype=torch.long).to(device))
+train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
+
+# Apply SMOTE to training set only
+train_segments = segments[:train_size]
+train_labels = labels[:train_size]
+if len(train_segments) < 11700:
+    print("🔄 Applying SMOTE to reach ~11,700 training samples...")
+    smote = SMOTE(sampling_strategy={0: 3150, 1: 3600, 2: 4950}, random_state=42, k_neighbors=5)
+    train_segments, train_labels = smote.fit_resample(train_segments, train_labels)
+train_tensor = torch.tensor(train_segments, dtype=torch.float32).unsqueeze(-1).to(device)
+train_labels_tensor = torch.tensor(train_labels, dtype=torch.long).to(device)
+train_dataset = TensorDataset(train_tensor, train_labels_tensor)
+train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+
+# Cap at 150,000 to avoid excessive noise
+if len(train_segments) > 150000:
+    indices = np.random.choice(len(train_segments), 150000, replace=False)
+    train_segments = train_segments[indices]
+    train_labels = train_labels[indices]
+
+# Fine-Tune BiLSTM
+ecg_model.train()
+optimizer = optim.Adam(ecg_model.parameters(), lr=0.0001)
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3, verbose=True)
+class_weights = torch.tensor([1.0, 1.4, 1.6], device=device)
+criterion = FocalLoss(alpha=0.95, gamma=2.0, class_weights=class_weights)
+
+print("\n🔄 Fine-tuning BiLSTM...")
+for epoch in range(25):
+    # Training Phase
+    ecg_model.train()
+    total_loss = 0
+    all_train_preds, all_train_labels = [], []
+    for batch_segments, batch_labels in tqdm(train_loader, desc=f"Fine-tuning Epoch [{epoch+1}/25]"):
+        batch_segments, batch_labels = batch_segments.to(device), batch_labels.to(device)
+        optimizer.zero_grad()
+        outputs = ecg_model(batch_segments)
+        loss = criterion(outputs, batch_labels)
+        loss.backward()
+        optimizer.step()
+        total_loss += loss.item()
+        preds = torch.argmax(outputs, dim=1).cpu().numpy()
+        all_train_preds.extend(preds)
+        all_train_labels.extend(batch_labels.cpu().numpy())
+
+    # Validation Phase
+    ecg_model.eval()
+    all_val_preds, all_val_labels = [], []
     with torch.no_grad():
-        y_pred = torch.argmax(meta_learner(X_test_tensor.to(device)), dim=1).cpu().numpy()
-    print("\n🎯 Final Ensemble Results:")
-    print("Accuracy:", accuracy_score(y_test, y_pred))
-    print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
-    print("Classification Report:\n", classification_report(y_test, y_pred))
+        for batch_segments, batch_labels in val_loader:
+            batch_segments, batch_labels = batch_segments.to(device), batch_labels.to(device)
+            outputs = ecg_model(batch_segments)
+            preds = torch.argmax(outputs, dim=1).cpu().numpy()
+            all_val_preds.extend(preds)
+            all_val_labels.extend(batch_labels.cpu().numpy())
 
-    # Save meta-learner
-    torch.save(meta_learner.state_dict(), "models/ensemble_meta_learner.pth")
-    print("\n✅ Meta-learner saved to models/ensemble_meta_learner.pth")
+    train_accuracy = accuracy_score(all_train_labels, all_train_preds)
+    val_accuracy = accuracy_score(all_val_labels, all_val_preds)
+    train_cm = confusion_matrix(all_train_labels, all_train_preds)
+    val_cm = confusion_matrix(all_val_labels, all_val_preds)
+    fn_train_high = train_cm[2, 0] + train_cm[2, 1] if train_cm.shape[0] > 2 else 0
+    fn_val_high = val_cm[2, 0] + val_cm[2, 1] if val_cm.shape[0] > 2 else 0
+    fn_train_high_rate = fn_train_high / sum(train_cm[2, :]) if train_cm.shape[0] > 2 and sum(train_cm[2, :]) > 0 else 0
+    fn_val_high_rate = fn_val_high / sum(val_cm[2, :]) if val_cm.shape[0] > 2 and sum(val_cm[2, :]) > 0 else 0
+
+    print(f"Fine-tuning Epoch [{epoch+1}/25], Loss: {total_loss/len(train_loader):.4f}")
+    print(f"   Train Accuracy: {train_accuracy*100:.2f}%, Val Accuracy: {val_accuracy*100:.2f}%")
+    print(f"   Train High-risk FN: {fn_train_high_rate*100:.2f}%, Val High-risk FN: {fn_val_high_rate*100:.2f}%")
+
+    # Learning Rate Scheduler Update
+    scheduler.step(fn_val_high_rate)
+
+torch.save(ecg_model.state_dict(), "../CardioVision/models/healthkit/bilstm_finetuned.pth")
+print("\n✅ Fine-tuned BiLSTM saved to models/healthkit/bilstm_finetuned.pth")

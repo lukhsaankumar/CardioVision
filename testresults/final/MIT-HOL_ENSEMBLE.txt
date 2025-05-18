@@ -1,0 +1,21 @@
+Results of healthkit/test_hk_final_MIT_HOL.py
+
+MIT-BIH/Holter Results:
+Classification Report:
+              precision    recall  f1-score   support
+
+         Low       0.99      0.99      0.99     24506
+         Med       0.89      1.00      0.94       476
+        High       0.99      0.99      0.99     23924
+
+    accuracy                           0.99     48906
+   macro avg       0.96      0.99      0.97     48906
+weighted avg       0.99      0.99      0.99     48906
+
+Confusion Matrix:
+[[24200    60   246]
+ [    0   475     1]
+ [   60    40 23824]]
+
+
+
