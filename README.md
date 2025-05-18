@@ -24,12 +24,13 @@ Predictions are classified into **Low**, **Medium**, and **High** risk categorie
 ```yaml
 CardioVision/
 ├── data/ # Raw datasets and mock data
-│ ├── mitdb/
-│ ├── holter/
-│ ├── incart/
-│ ├── ohca/
-│ ├── mimic3/
-│ └── mockhealthkit/
+│   ├── zip/
+│   │   ├── mitdb/
+│   │   ├── holter/
+│   │   ├── incart/
+│   │   ├── ohca/
+│   │   └── mimic3/
+│   └── mockhealthkit/
 │
 ├── models/ # Trained model files
 │ ├── ecg/
@@ -87,16 +88,16 @@ CardioVision/
 ├── README.md
 ├── requirements.txt
 └── references.md
-
-yaml
+```
 
 
 ## Backend Setup 🛠️
 
 ### Python Environment Setup
+
 ```bash
 python -m venv venv
-source venv/bin/activate  # or .\venv\Scripts\activate on Windows
+.\venv\Scripts\activate on Windows
 pip install -r requirements.txt
 Running FastAPI Server
 bash
