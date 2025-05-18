@@ -11,17 +11,14 @@ psutil
 tqdm
 
 # ML libraries
-tensorflow
 torch
 xgboost
 imbalanced-learn
 lightgbm
 catboost
 
-# Database
-psycopg2
-pymongo
-
-# API requests and streaming
+# API requests
 requests
-kafka-python
+
+# JSON Parsing
+orjson
