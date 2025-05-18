@@ -144,7 +144,7 @@ testresults/testresults/{dataset}/{DATASET}_{METRIC}.txt
 For example:
 ```bash testresults/ohca/OHCA_ECG3.txt``` contains the results of ```bash python scripts/test/ecg/test_ecg3_OHCA.py```
 
-## Frontend (watchOS/iOS) Setup ⌚
+## Frontend (watchOS/iOS) Setup
 ### Requirements:
  - Xcode 14+
  - watchOS 9.4+ (Physical Apple Watch Series 6+ or Simulator)
