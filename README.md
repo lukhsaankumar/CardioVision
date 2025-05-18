@@ -44,10 +44,8 @@ CardioVision/
 │ ├── main.py
 │ └── ecg_model.py
 │
-├── scripts/ # Scripts for data generation, training, testing
-│ ├── demodata/
-│ │ ├── generate_healthkit_final.py
-│ │ └── generate_healthkit_initial.py
+├── scripts/ 
+│ ├── demodata/ # Data generation scripts for demo
 │ │
 │ ├── test/ # Testing scripts on various datasets
 │ │ ├── ecg/
@@ -75,13 +73,8 @@ CardioVision/
 │
 ├── venv/ # Python virtual environment
 │
-├── xcode/ # watchOS/iOS frontend
-│ ├── CV Watch App/
-│ │ ├── AppSettings.swift
-│ │ ├── CardioWatchApp.swift
-│ │ ├── ContentView.swift
-│ │ └── ECGUploader.swift
-│ │
+├── xcode/ 
+│ ├── CV Watch App/ # watchOS/iOS frontend
 │ └── CV.xcodeproj/ # Xcode project file
 │
 ├── .gitignore
@@ -100,7 +93,7 @@ python -m venv venv
 .\venv\Scripts\activate on Windows
 pip install -r requirements.txt
 ```
-### If you have already setup the virtual enviroment, to reactivate it do:
+If you have already setup the virtual enviroment, to reactivate it do:
 ```bash
 .\venv\Scripts\Activate.ps1
 ```
@@ -113,36 +106,50 @@ Verify that the server is running and listening on
 http://0.0.0.0:8000
 ```
 
-Model Training & Testing 🧑‍💻
-Training Models
-bash
-Copy code
-# ECG
+## Extracting Datasets
+Before training or testing models, ensure each dataset ZIP file under 
+```bash data/zip/``` is extracted into its respective folder inside the ```bash data/``` directory.
+
+You can use copy these commands to do it at once:
+```bash
+unzip data/zip/holter.zip -d data/holter/
+unzip data/zip/mimic3.zip -d data/mimic3/
+unzip data/zip/ohca.zip -d data/ohca/
+unzip data/zip/mitbih.zip -d data/mitbih/
+unzip data/zip/incart.zip -d data/incart/
+```
+
+## Model Training & Testing
+# Training Models
+Each metric (e.g., ECG, HR, HRV, RHR, HHR, HealthKit) has its own training script located at ```bash scripts/train/{metric}/train_{metric}.py.```
+
+For example:
+```bash
 python scripts/train/ecg/train_ecg.py
+```
+Some metrics may have multiple iterations (e.g., ```bash train_hrv2.py``` for a second iteration of HRV training).
 
-# HealthKit Initial Metrics
-python scripts/train/healthkit/train_healthkit.py
+Each training script contains a description at the top that clearly outline the model, feature extraction, and where the models and scalars are saved: ```bash models/{metric}/```
 
-# Individual Metrics
-python scripts/train/hr/train_hr.py
-python scripts/train/hrv/train_hrv.py
-python scripts/train/rhr/train_rhr.py
-python scripts/train/hhr/train_hhr.py
-Testing Models
-bash
-Copy code
-# ECG
-python scripts/test/ecg/test_ecg.py
+# Testing Models
+Testing scripts evaluate trained models on various datasets.
+Scripts are located at ```bash scripts/test/{metric}/test_{metric}_{DATASET}.py.```
 
-# HealthKit Metrics
-python scripts/test/healthkit/test_healthkit.py
+For example:
+```bash
+python scripts/test/ecg/test_ecg_OHCA.py
+```
+Similar to training, test scripts might have numbered iterations (e.g., ```bash test_hrv2_MITBIH.py```).
+Each test script includes a description at the top outlining the model being tested, dataset and evaluation, location where results will be saved: ```bash testresults/{dataset}/```
 
-# Individual Metrics on respective datasets
-python scripts/test/hr/test_hr.py
-python scripts/test/hrv/test_hrv.py
-python scripts/test/rhr/test_rhr.py
-python scripts/test/hhr/test_hhr.py
-Results stored in testresults/.
+# Viewing Test Results
+All test results from running the scripts are saved in testresults/ with clear naming conventions:
+```bash
+testresults/testresults/{dataset}/{DATASET}_{METRIC}.txt
+```
+
+For example:
+```bash testresults/ohca/OHCA_ECG3.txt``` contains the results of ```bash python scripts/test/ecg/test_ecg3_OHCA.py```
 
 Frontend (watchOS/iOS) Setup ⌚️📱
 Requirements
