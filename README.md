@@ -1,4 +1,4 @@
-# CardioVision ❤️
+# CardioVision 
 
 **Real-time Cardiac Arrest Risk Prediction using ECG and HealthKit Data**
 
@@ -6,7 +6,7 @@ CardioVision leverages advanced machine learning to predict cardiac arrest risk 
 
 ---
 
-## Project Overview 📌
+## Project Overview
 
 CardioVision integrates multiple machine learning models to analyze:
 
@@ -20,7 +20,7 @@ Predictions are classified into **Low**, **Medium**, and **High** risk categorie
 
 ---
 
-## Project Structure 📁
+## Project Structure 
 ```yaml
 CardioVision/
 ├── data/ # Raw datasets and mock data
@@ -91,7 +91,7 @@ CardioVision/
 ```
 
 
-## Backend Setup 🛠️
+## Backend Setup 
 
 ### Python Environment Setup
 
@@ -99,12 +99,19 @@ CardioVision/
 python -m venv venv
 .\venv\Scripts\activate on Windows
 pip install -r requirements.txt
-Running FastAPI Server
-bash
-Copy code
+```
+### If you have already setup the virtual enviroment, to reactivate it do:
+```bash
+.\venv\Scripts\Activate.ps1
+```
+### Running FastAPI Server
+```bash
 uvicorn pipeline.main:app --reload --host 0.0.0.0 --port 8000
-Backend available at:
-🔗 http://0.0.0.0:8000
+```
+Verify that the server is running and listening on
+```bash
+http://0.0.0.0:8000
+```
 
 Model Training & Testing 🧑‍💻
 Training Models
