@@ -167,7 +167,7 @@ static var demoMode: Bool = false // Live data with HealthKit
 ## Disclaimers
  - Apple Watch Series 6 or newer is required to test the ECG functionality of the app, as earlier models do not support ECG data collection via HealthKit.
  - Due to the unavailability of an Apple Watch Series 6 or above, and an existing bug preventing the appearance of "Developer Positions" to enable app testing on physical watches, the live HealthKit metrics integration has not been fully tested on actual hardware. Current testing relies on mock data.
- - The currently fine-tuned Bidirectional LSTM (```bash models/healthkit/bilstm_finetuned.pth```) exhibits some limitations due to suboptimal performance of associated submodels (HR, HRV, RHR, HHR). Therefore, all tests (including demonstrations) currently use—and should continue to use—the original model located at: ```bash models/ecg/bilstm_model_multiclass.pth```
+ - The currently fine-tuned Bidirectional LSTM (```bash models/healthkit/bilstm_finetuned.pth```) exhibits some limitations due to suboptimal performance of associated submodels (HR, HRV, RHR, HHR). Therefore, all tests (including demonstrations) currently use = and should continue to use - the original model located at: ```bash models/ecg/bilstm_model_multiclass.pth```
 
 
 
