@@ -1,76 +1,194 @@
+# CardioVision ❤️
 
-# CardioVision
+**Real-time Cardiac Arrest Risk Prediction using ECG and HealthKit Data**
 
-CardioVision is a machine learning-powered system designed to predict cardiac arrest risk in real-time by analyzing ECG waveforms and health data from wearable devices like the Apple Watch. The project aims to improve early detection and preventive care for cardiac events by combining time-series ECG data with physiological signals such as heart rate, heart rate variability (HRV), and oxygen saturation.
-
----
-
-## Project Overview
-Cardiac arrest is a leading cause of death worldwide, with survival rates as low as 10% outside of a hospital setting. Early detection of irregular heart activity can drastically improve survival rates through timely medical intervention.
-
-CardioVision leverages deep learning models, including an LSTM-based classifier, to analyze ECG waveforms and predict the likelihood of cardiac arrest or arrhythmic episodes. The model is trained on the MIT-BIH Arrhythmia Database and will be extended using additional datasets (e.g., OHCA and real-time HealthKit data) to improve prediction accuracy and generalization.
-
-The system is designed to:
-✅ Classify heartbeats as normal or arrhythmic using ECG waveforms  
-✅ Adapt to new data from HealthKit and other real-world sources using continual learning  
-✅ Provide real-time risk prediction for cardiac events over a 24–72 hour window  
-✅ Output a risk score (Low, Medium, High) based on predicted heart activity patterns  
+CardioVision leverages advanced machine learning to predict cardiac arrest risk in real-time by analyzing ECG waveforms and physiological data gathered from wearable devices such as the Apple Watch. It aims to improve cardiac event outcomes through early detection and timely interventions.
 
 ---
 
-## Setup
-### 1. Create a virtual environment and install dependencies:
+## Project Overview 📌
+
+CardioVision integrates multiple machine learning models to analyze:
+
+- **Electrocardiogram (ECG) Waveforms**
+- **Heart Rate (HR)**
+- **Heart Rate Variability (HRV)**
+- **Resting Heart Rate (RHR)**
+- **High Heart Rate Events (HHR)**
+
+Predictions are classified into **Low**, **Medium**, and **High** risk categories, enabling proactive management of cardiac health.
+
+---
+
+## Project Structure 📁
+```yaml
+CardioVision/
+├── data/ # Raw datasets and mock data
+│ ├── mitdb/
+│ ├── holter/
+│ ├── incart/
+│ ├── ohca/
+│ ├── mimic3/
+│ └── mockhealthkit/
+│
+├── models/ # Trained model files
+│ ├── ecg/
+│ ├── healthkit/
+│ ├── heartrate/
+│ ├── heartratevariability/
+│ ├── highheartrateevents/
+│ └── restingheartrate/
+│
+├── pipeline/ # FastAPI backend pipeline
+│ ├── main.py
+│ └── ecg_model.py
+│
+├── scripts/ # Scripts for data generation, training, testing
+│ ├── demodata/
+│ │ ├── generate_healthkit_final.py
+│ │ └── generate_healthkit_initial.py
+│ │
+│ ├── test/ # Testing scripts on various datasets
+│ │ ├── ecg/
+│ │ ├── healthkit/
+│ │ ├── hhr/
+│ │ ├── hr/
+│ │ ├── hrv/
+│ │ └── rhr/
+│ │
+│ └── train/ # Model training scripts
+│ ├── ecg/
+│ ├── healthkit/
+│ ├── hhr/
+│ ├── hr/
+│ ├── hrv/
+│ └── rhr/
+│
+├── testresults/ # Model performance results
+│ ├── final/
+│ ├── holter/
+│ ├── incart/
+│ ├── mimic3/
+│ ├── mitbih/
+│ └── ohca/
+│
+├── venv/ # Python virtual environment
+│
+├── xcode/ # watchOS/iOS frontend
+│ ├── CV Watch App/
+│ │ ├── AppSettings.swift
+│ │ ├── CardioWatchApp.swift
+│ │ ├── ContentView.swift
+│ │ └── ECGUploader.swift
+│ │
+│ └── CV.xcodeproj/ # Xcode project file
+│
+├── .gitignore
+├── README.md
+├── requirements.txt
+└── references.md
+
+yaml
+
+
+## Backend Setup 🛠️
+
+### Python Environment Setup
 ```bash
 python -m venv venv
-.venv\Scripts\activate
+source venv/bin/activate  # or .\venv\Scripts\activate on Windows
 pip install -r requirements.txt
-```
-### If you have already setup the virtual enviroment, to reactivate it do:
-```bash
-.\venv\Scripts\Activate.ps1
-```
+Running FastAPI Server
+bash
+Copy code
+uvicorn pipeline.main:app --reload --host 0.0.0.0 --port 8000
+Backend available at:
+🔗 http://0.0.0.0:8000
 
----
+Model Training & Testing 🧑‍💻
+Training Models
+bash
+Copy code
+# ECG
+python scripts/train/ecg/train_ecg.py
 
-### 2. Train the Model
-Train the LSTM model on the MIT-BIH database (Although there is a trained model already available, a brand new one can be trained with this command):
-```bash
-python models/train_lstm.py
-```
+# HealthKit Initial Metrics
+python scripts/train/healthkit/train_healthkit.py
 
----
+# Individual Metrics
+python scripts/train/hr/train_hr.py
+python scripts/train/hrv/train_hrv.py
+python scripts/train/rhr/train_rhr.py
+python scripts/train/hhr/train_hhr.py
+Testing Models
+bash
+Copy code
+# ECG
+python scripts/test/ecg/test_ecg.py
 
-### 3. Test the Model on MIT-BIH Records
-Evaluate the model's performance on individual records from the MIT-BIH dataset:
-```bash
-python models/inference.py
-```
+# HealthKit Metrics
+python scripts/test/healthkit/test_healthkit.py
 
----
+# Individual Metrics on respective datasets
+python scripts/test/hr/test_hr.py
+python scripts/test/hrv/test_hrv.py
+python scripts/test/rhr/test_rhr.py
+python scripts/test/hhr/test_hhr.py
+Results stored in testresults/.
 
-## HealthKit Metrics
-Apple's HealthKit offers several key metrics that can enhance cardiac risk prediction:  
-- **Heart Rate (HR):** Measures the user’s heartbeats per minute  
-- **Heart Rate Variability (HRV):** Measures variation in time intervals between heartbeats (indicator of autonomic function)  
-- **Resting Heart Rate:** Captures the lowest heart rate during periods of rest  
-- **High Heart Rate Events:** Flags when the user’s heart rate exceeds a set threshold  
-- **Electrocardiogram (ECG):** Provides detailed electrical activity of the heart to detect irregular rhythms  
+Frontend (watchOS/iOS) Setup ⌚️📱
+Requirements
+Xcode 14+
 
-These metrics will be integrated into the model to improve accuracy and enable real-time cardiac risk monitoring directly from Apple Watch.
+watchOS 9.4+ (Physical Apple Watch Series 6+ or Simulator)
 
----
+Setup
+Open the project at xcode/CV.xcodeproj.
 
-## Future Scope
-✅ Add more diverse datasets (e.g., OHCA) to improve model generalization  
-✅ Integrate Apple HealthKit data for real-time cardiac monitoring  
-✅ Implement a time-series forecasting model to predict cardiac risk over the next 24–72 hours  
-✅ Deploy using FastAPI and Kubernetes for scalable inference and monitoring  
+Configure demo mode in AppSettings.swift:
 
----
+swift
+Copy code
+static var demoMode: Bool = true  // Simulator or demo data
+static var demoMode: Bool = false // Live data with HealthKit
+Build and run on selected watchOS target (Simulator or physical device).
 
+⚠️ Note:
+Due to limited access to an Apple Watch Series 6+ (required for ECG data), HealthKit integration is currently limited to simulated data (demoMode = true).
 
-```bash
-uvicorn api.main:app --reload
-```
+Key Features 🚀
+✅ Real-time ECG waveform classification
 
-CardioVision aims to deliver an advanced, real-time cardiac risk prediction system that empowers users and healthcare professionals with actionable insights. ❤️
+✅ HealthKit metrics integration (HR, HRV, RHR, HHR)
+
+✅ Real-time cardiac risk predictions (Low, Medium, High)
+
+✅ Continual learning from user data
+
+Future Enhancements 🌱
+Time-series forecasting of cardiac risk (24–72 hours ahead)
+
+Extended dataset integration (e.g., OHCA)
+
+Deployment optimization (Docker, Kubernetes)
+
+Automated CI/CD pipeline for updates
+
+References 📚
+MIT-BIH Arrhythmia Database
+
+INCART ECG Database
+
+OHCA Database
+
+Apple HealthKit
+
+FastAPI
+
+Team Members 👥
+[Your Name or Team Members Here]
+
+License 📄
+[Your License Information Here]
+
+❤️ CardioVision aims to empower users and healthcare providers by delivering accurate, actionable cardiac health insights in real-time.
