@@ -1,4 +1,19 @@
-# ecg_model.py
+"""
+ECG Model Prediction Script (BiLSTM Model - JSON Input)
+-------------------------------------------------------
+This script provides a function to load a pre-trained BiLSTM model for ECG classification 
+and perform predictions directly on a JSON file containing raw ECG voltage data.
+
+Description:
+- Defines the BiLSTM model architecture for ECG classification (3-class: Low, Medium, High).
+- Provides functions for preprocessing a single JSON file containing ECG voltage data:
+  - Resamples ECG segments to a standard window size (250 samples at 250 Hz).
+  - Normalizes each segment using StandardScaler.
+- Loads a pre-trained BiLSTM model from the specified path.
+- Performs classification on each preprocessed segment from the JSON file.
+- Returns predicted labels for each segment (Low, Medium, High risk).
+"""
+
 import torch
 import torch.nn as nn
 import numpy as np

@@ -1,4 +1,6 @@
-✅ Test Accuracy: 1.0000
+Results of rhr/test_rhr_MIMIC.py
+
+Test Accuracy: 1.0000
 📋 Classification Report:
                precision    recall  f1-score   support
 
@@ -9,6 +11,6 @@
    macro avg       1.00      1.00      1.00       314
 weighted avg       1.00      1.00      1.00       314
 
-🧮 Confusion Matrix:
+Confusion Matrix:
  [[ 96   0]
  [  0 218]

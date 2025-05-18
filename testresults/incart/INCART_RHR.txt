@@ -1,5 +1,7 @@
-✅ Test Accuracy: 0.9995
-📋 Classification Report:
+Results of rhr/test_rhr_INCART.py
+
+Test Accuracy: 0.9995
+Classification Report:
                precision    recall  f1-score   support
 
            0       1.00      1.00      1.00       958
@@ -9,6 +11,6 @@
    macro avg       1.00      1.00      1.00      2145
 weighted avg       1.00      1.00      1.00      2145
 
-🧮 Confusion Matrix:
+Confusion Matrix:
  [[ 957    1]
  [   0 1187]]

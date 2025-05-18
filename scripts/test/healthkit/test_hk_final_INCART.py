@@ -1,15 +1,16 @@
 """
-BiLSTM ECG Model Testing Script (INCART Dataset)
-------------------------------------------------
-This script tests a pre-trained BiLSTM model with an ensemble meta-learner for ECG classification on the INCART dataset.
+BiLSTM ECG Model Testing Script (INCART Dataset - Fine-Tuned Model)
+-------------------------------------------------------------------
+This script tests a fine-tuned BiLSTM model for cardiac arrest risk classification using the INCART dataset.
 
 Description:
-- Loads a pre-trained BiLSTM model and ensemble meta-learner for ECG classification (3-class: Low, Medium, High risk).
-- Loads and preprocesses INCART ECG data with submodel inputs (HR, HRV, RHR, HHR).
-- Evaluates the model on the INCART dataset.
-- Displays evaluation metrics (Classification Report, Confusion Matrix).
-- Results are displayed in the console and can be found at:
-  testresults/incart/INCART_ECG3.txt
+- Loads a fine-tuned BiLSTM model for 3-class ECG classification (Low, Medium, High risk).
+- Fine-tuned model was trained using feedback samples (True Positive, False Negative) from MIT-BIH, Holter, and INCART datasets.
+- Loads and preprocesses ECG beats from the INCART dataset (Lead I).
+- Each ECG beat is normalized and processed into a fixed-length segment (250 samples).
+- Evaluates the model on the INCART dataset with classification metrics (Accuracy, Precision, Recall, F1-Score, Confusion Matrix).
+- Applies submodel corrections (HR, HRV, RHR, HHR) to minimize False Negatives for high-risk classification.
+- Results are displayed in the console, including a detailed classification report and confusion matrix.
 """
 
 import os
@@ -45,70 +46,6 @@ class BiLSTMModel(nn.Module):
         x = self.dropout(x[:, -1, :])
         x = self.fc(x)
         return x
-
-# Ensemble Meta-Learner Model
-class EnsembleMetaLearner(nn.Module):
-    """
-    Ensemble Meta-Learner to combine BiLSTM and submodel predictions.
-    """
-    def __init__(self, input_size=10, hidden_size=64, output_size=3):
-        super(EnsembleMetaLearner, self).__init__()
-        self.fc1 = nn.Linear(input_size, hidden_size)
-        self.relu = nn.ReLU()
-        self.dropout = nn.Dropout(0.3)
-        self.fc2 = nn.Linear(hidden_size, output_size)
-
-    def forward(self, x):
-        """
-        Forward pass for the meta-learner.
-        """
-        x = self.relu(self.fc1(x))
-        x = self.dropout(x)
-        x = self.fc2(x)
-        return x
-
-# Extract beats from INCART record
-def extract_beats_from_incart(record_path, symbols, label, window_size=250):
-    """
-    Extracts and preprocesses ECG beats from a given INCART record.
-
-    Args:
-        record_path (str): Path to the INCART record.
-        symbols (list): List of symbols representing the beat classes.
-        label (int): Label assigned to the extracted beats (0: Low, 1: Medium, 2: High).
-        window_size (int): Length of each beat segment (default: 250).
-
-    Returns:
-        list: Extracted ECG segments.
-        list: Corresponding labels for each segment.
-        list: Metadata (filename and segment index).
-    """
-    beats, labels, metadata = [], [], []
-    try:
-        print(f"Reading record {record_path} ...")
-        record = wfdb.rdrecord(record_path)
-        ann = wfdb.rdann(record_path, 'atr')
-        signal = record.p_signal[:, 0]  # Use lead I
-        scaler = StandardScaler()
-
-        for idx, (sym, loc) in enumerate(zip(ann.symbol, ann.sample)):
-            if sym not in symbols:
-                continue
-            start = max(0, loc - window_size // 2)
-            end = min(len(signal), loc + window_size // 2)
-            segment = signal[start:end]
-            if len(segment) != window_size:
-                segment = np.pad(segment, (0, window_size - len(segment)), mode='constant')
-            segment_normalized = scaler.fit_transform(segment.reshape(-1, 1)).reshape(-1)
-            if np.any(np.isnan(segment_normalized)) or np.any(np.isinf(segment_normalized)) or np.std(segment_normalized) == 0:
-                continue
-            beats.append(segment_normalized)
-            labels.append(label)
-            metadata.append((os.path.basename(record_path), idx))
-        print(f"Loaded {len(beats)} beats from {record_path}")
-    except Exception as e:
-        print(f"Skipping {record_path} due to error: {e}")
-    return beats, labels, metadata
 
 # Helper Functions
 def get_r_peaks(signal, fs):
@@ -156,10 +93,53 @@ def compute_hrv_features(rr_intervals):
     ]
     return np.array(features)
 
-# Test BiLSTM model with Ensemble on INCART
+# Extract beats from INCART record
+def extract_beats_from_incart(record_path, symbols, label, window_size=250):
+    """
+    Extracts and preprocesses ECG beats from a given INCART record.
+
+    Args:
+        record_path (str): Path to the INCART record.
+        symbols (list): List of symbols representing the beat classes.
+        label (int): Label assigned to the extracted beats (0: Low, 1: Medium, 2: High).
+        window_size (int): Length of each beat segment (default: 250).
+
+    Returns:
+        list: Extracted ECG segments.
+        list: Corresponding labels for each segment.
+    """
+    beats, labels = [], []
+    try:
+        print(f"Reading record {record_path} ...")
+        record = wfdb.rdrecord(record_path)
+        ann = wfdb.rdann(record_path, 'atr')
+        signal = record.p_signal[:, 0]  # Use lead I
+        scaler = StandardScaler()
+
+        for sym, loc in zip(ann.symbol, ann.sample):
+            if sym not in symbols:
+                continue
+            start = loc - window_size // 2
+            end = loc + window_size // 2
+            if start < 0 or end > len(signal):
+                continue
+            segment = signal[start:end]
+            if len(segment) != window_size:
+                segment = np.pad(segment, (0, window_size - len(segment)), mode='constant')
+            segment = scaler.fit_transform(segment.reshape(-1, 1)).reshape(-1)
+            if np.any(np.isnan(segment)) or np.any(np.isinf(segment)) or np.std(segment) == 0:
+                continue
+            beats.append(segment)
+            labels.append(label)
+        print(f"Loaded {len(beats)} beats from {record_path}")
+    except Exception as e:
+        print(f"Skipping {record_path} due to error: {e}")
+    return beats, labels
+
+# Test BiLSTM model on INCART
 def test_incart_ecg_model():
     """
-    Tests the pre-trained BiLSTM model with ensemble on the INCART dataset.
+    Tests the pre-trained BiLSTM model on the INCART dataset.
     Results are displayed in the console and can be found at:
     testresults/INCART_ECG3.txt
     """
@@ -172,17 +152,16 @@ def test_incart_ecg_model():
     med_syms = ['A', 'S', 'a', 'J', '?']
     high_syms = ['V', 'F', 'E']
 
-    all_beats, all_labels, all_metadata = [], [], []
+    all_beats, all_labels = [], []
 
     print("Loading and preprocessing INCART data...")
     for rec in tqdm(incart_recs, desc="INCART Records"):
         path = os.path.join(base_path, rec)
-        low, l_lbl, l_meta = extract_beats_from_incart(path, low_syms, 0, window_size)
-        med, m_lbl, m_meta = extract_beats_from_incart(path, med_syms, 1, window_size)
-        high, h_lbl, h_meta = extract_beats_from_incart(path, high_syms, 2, window_size)
+        low, l_lbl = extract_beats_from_incart(path, low_syms, 0, window_size)
+        med, m_lbl = extract_beats_from_incart(path, med_syms, 1, window_size)
+        high, h_lbl = extract_beats_from_incart(path, high_syms, 2, window_size)
         all_beats.extend(low + med + high)
         all_labels.extend(l_lbl + m_lbl + h_lbl)
-        all_metadata.extend(l_meta + m_meta + h_meta)
 
     if not all_beats:
         raise ValueError("No valid INCART data loaded.")
@@ -196,17 +175,13 @@ def test_incart_ecg_model():
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     ecg_model = BiLSTMModel(input_size=1, hidden_size=128, num_layers=3, output_size=3, dropout=0.3)
-    meta_learner = EnsembleMetaLearner(input_size=10)
     try:
         ecg_model.load_state_dict(torch.load("../CardioVision/models/healthkit/bilstm_finetuned.pth", map_location=device))
-        meta_learner.load_state_dict(torch.load("../CardioVision/models/healthkit/ensemble_meta_learner.pth", map_location=device))
     except FileNotFoundError as e:
         print(f"Skipping due to error: {e}")
         return
     ecg_model.to(device)
-    meta_learner.to(device)
     ecg_model.eval()
-    meta_learner.eval()
 
     # Load Submodels
     with open("../CardioVision/models/heartrate/hr_model2.json") as f:
@@ -219,7 +194,6 @@ def test_incart_ecg_model():
 
     y_true, y_pred = [], []
     batch_size = 128
-    scaler = StandardScaler()
 
     print("Evaluating model...")
     with torch.no_grad():
@@ -228,7 +202,7 @@ def test_incart_ecg_model():
             outputs = ecg_model(X_batch)
             ecg_output = torch.softmax(outputs, dim=-1).cpu().numpy()
 
-            # Submodel Predictions
+            # Submodel Predictions for FN Correction
             batch_preds = []
             for j in range(X_batch.size(0)):
                 segment = X_batch[j].cpu().numpy().squeeze()
@@ -236,11 +210,11 @@ def test_incart_ecg_model():
                 hr_series = extract_hr(segment, fs)
                 idx = min(len(hr_series) - 1, j)
                 hr_val = hr_series[idx] if idx >= 0 else 60
-                pred_hr = 1 if hr_val > 120 else 0
-                sustained_high_hr = int(np.all(hr_series[max(0, idx-10):idx+1] > 150)) if idx > 0 else 0
+                pred_hr = 1 if hr_val > 100 else 0
+                sustained_high_hr = int(np.all(hr_series[max(0, idx-10):idx+1] > 130)) if idx > 0 else 0
                 pred_hhr = 1 if sustained_high_hr else 0
                 rhr = np.mean(hr_series) if len(hr_series) > 0 else 60
-                pred_rhr = 1 if rhr > 75 else 0
+                pred_rhr = 1 if rhr > 70 else 0
                 r_peaks = get_r_peaks(segment, fs)
                 rr_intervals = np.diff(r_peaks) / fs * 1000
                 hrv_features = compute_hrv_features(rr_intervals)
@@ -257,19 +231,7 @@ def test_incart_ecg_model():
                     corrected_pred = 1
                 elif (ecg_pred in [0, 1]) and abnormal_count >= 3:
                     corrected_pred = 2
-
-                # Meta-Learner Features
-                binary_probs = np.array([pred_hr, pred_hhr, pred_rhr, hrv_pred_binary], dtype=np.float32)
-                corrected_probs = np.zeros(3, dtype=np.float32)
-                corrected_probs[corrected_pred] = 1.0
-                features = np.concatenate([ecg_output[j], binary_probs, corrected_probs])
-                if np.any(np.isnan(features)) or np.any(np.isinf(features)):
-                    continue
-
-                features_tensor = torch.tensor(scaler.fit_transform([features]), dtype=torch.float32).to(device)
-                meta_output = meta_learner(features_tensor)
-                pred = torch.argmax(meta_output, dim=1).cpu().numpy()[0]
-                batch_preds.append(pred)
+                batch_preds.append(corrected_pred)
 
             y_pred.extend(batch_preds)
             y_true.extend(y[i:i+batch_size])

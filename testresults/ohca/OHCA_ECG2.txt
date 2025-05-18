@@ -1,4 +1,6 @@
-🎯 OHCA Results:
+Results of ecg/test_ecg2_OHCA.py
+
+OHCA Results:
 Classification Report:
               precision    recall  f1-score   support
 
@@ -15,7 +17,7 @@ Confusion Matrix:
  [   0    0    0]
  [ 278  787 2509]]
 
-📋 Classified Segments:
+Classified Segments:
 Low Classified Segments (278):
   - 000011dic.json, Segment 3
   - 000011dic.json, Segment 7

@@ -1,3 +1,37 @@
+"""
+FastAPI Server for Health Metrics and ECG Classification
+---------------------------------------------------------
+This script defines a FastAPI server that handles health metrics and ECG classification requests.
+
+Description:
+- Sets up a FastAPI server with CORS enabled to allow communication with a Swift app.
+- Provides three main endpoints:
+  1. /send_all_metrics:
+     - Initial Pipeline for health metrics.
+     - Receives four health metrics (HR, HRV, RHR, HHR) from the client (e.g., Swift app).
+     - Uses a pre-trained Random Forest model (healthkit_rf_model.pkl) to classify the health state.
+     - Returns a risk prediction ("No Risk", "Possible Risk").
+
+  2. /send_test_ecg:
+     - Final Pipeline for ECG classification.
+     - Tests the ECG model using a mock ECG data file (JSON) for demonstration.
+     - Loads a pre-trained BiLSTM model (bilstm_model_multiclass.pth) for ECG classification.
+     - Analyzes the mock ECG data and returns a final risk prediction.
+
+  3. /send_ecg:
+     - Receives a JSON file path (client-provided) containing ECG voltage data.
+     - Loads the ECG model and analyzes the ECG data.
+     - Returns a final risk prediction based on the model’s output.
+
+- Uses the `determine_risk` helper function to analyze the ECG classification results:
+  - If 2+ segments are classified as "High", the result is "High Risk Contact EMS".
+  - If 1 segment is "High", the result is "Symptoms of Cardiac Arrest Monitor".
+  - If all segments are "Low", the result is "False Alarm".
+
+- Demonstrates how to build a simple FastAPI server for ML-based predictions.
+"""
+
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 import joblib

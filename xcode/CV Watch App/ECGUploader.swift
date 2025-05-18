@@ -1,8 +1,45 @@
+/*
+ECGUploader: Swift Class for Health Metrics and ECG Data Collection (HealthKit)
+------------------------------------------------------------------------------
+This class is designed for integrating with Apple's HealthKit to:
+- Request user authorization for accessing health metrics (Heart Rate, HRV, Resting Heart Rate, ECG).
+- Periodically fetch and send health metrics (HR, HRV, RHR, HHR) to a remote server.
+- Collect and send real-time ECG data from HealthKit to a server for analysis.
+- Provide a demo mode for testing without requiring actual HealthKit data.
+
+Features:
+1. HealthKit Integration:
+   - Requests authorization for reading heart rate, HRV, resting heart rate, and ECG data.
+   - Periodically fetches the latest heart rate, HRV, resting heart rate, and high heart rate events (HHR).
+
+2. ECG Sampling:
+   - Fetches the most recent ECG sample from HealthKit (for Apple Watch Series 4 or above).
+   - Extracts voltage values and sends them as JSON to a server endpoint for analysis.
+   - Includes a demo method (sendTestECGSample) to simulate ECG sending.
+
+3. JSON API Communication:
+   - Sends health metrics and ECG data as JSON payloads to specified server endpoints.
+   - Supports sending real-time data and mock data for demo/testing.
+
+4. Demo Mode:
+   - Simulates sending hardcoded metrics (HR, HRV, RHR, HHR) for testing purposes.
+
+Note:
+- Due to inaccessibility to an Apple Watch Series 6 or above with ECG capabilities, the HealthKit ECG functionality has not been fully tested.
+- Ensure the server IP address is correctly set in the URL strings (e.g., "http://[YOUR IP ADDRESS]:8000/send_all_metrics").
+
+Usage:
+- Initialize an instance of ECGUploader in your SwiftUI app.
+- Call requestAuthorization() to request HealthKit access.
+- Use startSendingData() to start periodic data fetching and sending.
+- Use fetchECGSample() to capture and send an ECG sample on demand.
+*/
+
+
 import Foundation
 import HealthKit
 import Combine
 
-// ECGUploader: Manages HealthKit authorization, periodic data fetching, ECG sampling, and sending data to server
 class ECGUploader: ObservableObject {
     private let healthStore = HKHealthStore()
     private var timer: Timer?

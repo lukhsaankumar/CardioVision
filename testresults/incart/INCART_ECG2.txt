@@ -1,5 +1,7 @@
-✅ Total samples: 175780
-📋 Classification Report:
+Results of ecg/test_ecg2_INCART.py
+
+Total samples: 175780
+Classification Report:
               precision    recall  f1-score   support
 
          Low       0.92      0.57      0.71    153596
@@ -10,7 +12,7 @@
    macro avg       0.40      0.52      0.37    175780
 weighted avg       0.83      0.57      0.66    175780
 
-🧮 Confusion Matrix:
+Confusion Matrix:
  [[88020 36969 28607]
  [  658   908   393]
  [ 7248  2541 10436]]

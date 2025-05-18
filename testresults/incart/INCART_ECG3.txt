@@ -1,4 +1,6 @@
-✅ INCART Results:
+Results of ecg/test_ecg3_INCART.txt
+
+INCART Results:
 Classification Report:
               precision    recall  f1-score   support
 

@@ -1,3 +1,18 @@
+"""
+BiLSTM OHCA Model Testing Script (Fine-Tuned Model)
+----------------------------------------------------
+This script tests a fine-tuned BiLSTM model for cardiac arrest risk classification using OHCA (Out-of-Hospital Cardiac Arrest) ECG data.
+
+Description:
+- Loads a fine-tuned BiLSTM model for 3-class ECG classification (Low, Medium, High risk).
+- Fine-tuned model was trained using feedback samples (True Positive, False Negative) from MIT-BIH, Holter, and INCART datasets.
+- Loads and preprocesses OHCA ECG data from JSON files in the mockhealthkit/high_risk directory.
+- Each ECG segment is resampled to 250 Hz, normalized, and segmented using a sliding window approach.
+- The model is evaluated on the OHCA dataset with classification metrics (Accuracy, Precision, Recall, F1-Score, Confusion Matrix).
+- Results are displayed in the console, and the model's predictions are categorized and displayed by class.
+"""
+
+
 import warnings
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 import json
@@ -34,10 +49,10 @@ def load_ohca_segments(json_path, window_size=250, stride=125, target_fs=250, la
         voltages = np.array(data['voltages'], dtype=np.float32)
         sampling_frequency = data.get('samplingFrequency', 512)
         if np.any(np.isnan(voltages)) or np.any(np.isinf(voltages)):
-            print(f"⚠️ Skipping {json_path} due to NaN/Inf in voltages")
+            print(f"Skipping {json_path} due to NaN/Inf in voltages")
             return [], [], []
         if len(voltages) < window_size:
-            print(f"⚠️ Skipping {json_path} due to insufficient length: {len(voltages)} < {window_size}")
+            print(f"Skipping {json_path} due to insufficient length: {len(voltages)} < {window_size}")
             return [], [], []
 
         segments, labels, metadata = [], [], []
@@ -60,10 +75,10 @@ def load_ohca_segments(json_path, window_size=250, stride=125, target_fs=250, la
 
         segments = np.array(segments)
         labels = np.array(labels)
-        print(f"✅ Processed {json_path}: {len(segments)} segments")
+        print(f"Processed {json_path}: {len(segments)} segments")
         return segments, labels, metadata
     except Exception as e:
-        print(f"⚠️ Skipping {json_path} due to error: {e}")
+        print(f"Skipping {json_path} due to error: {e}")
         return [], [], []
 
 # Evaluate Model
@@ -78,7 +93,7 @@ def test_ohca_model():
 
     all_segments, all_labels, all_metadata = [], [], []
 
-    print("📥 Loading and preprocessing OHCA data...")
+    print("Loading and preprocessing OHCA data...")
     for json_file in tqdm(json_files, desc="Processing JSONs"):
         json_path = os.path.join(base_path, json_file)
         segments, labels, metadata = load_ohca_segments(json_path, window_size, stride, target_fs, high_risk_label)
@@ -88,12 +103,12 @@ def test_ohca_model():
             all_metadata.extend(metadata)
 
     if not all_segments:
-        print("❌ No valid segments collected for testing.")
+        print("No valid segments collected for testing.")
         return
 
     X = np.array(all_segments, dtype=np.float32)
     y = np.array(all_labels, dtype=np.int64)
-    print(f"✅ Total samples: {len(X)} (High: {(y == high_risk_label).sum()})")
+    print(f"Total samples: {len(X)} (High: {(y == high_risk_label).sum()})")
 
     # Subsample or pad to match target samples if necessary
     if len(X) > target_samples:
@@ -102,7 +117,7 @@ def test_ohca_model():
         y = y[indices]
         all_metadata = np.array(all_metadata, dtype=object)[indices]
     elif len(X) < target_samples:
-        print(f"⚠️ OHCA dataset has only {len(X)} samples, less than target {target_samples}. Padding with duplicates.")
+        print(f"OHCA dataset has only {len(X)} samples, less than target {target_samples}. Padding with duplicates.")
         while len(X) < target_samples:
             indices = np.random.choice(len(X), min(target_samples - len(X), len(X)), replace=False)
             X = np.concatenate((X, X[indices]))
@@ -116,7 +131,7 @@ def test_ohca_model():
     try:
         model.load_state_dict(torch.load("../CardioVision/models/healthkit/bilstm_finetuned.pth", map_location=device))
     except FileNotFoundError:
-        print("❌ Model file '../CardioVision/models/healthkit/bilstm_finetuned.pth' not found.")
+        print("Model file '../CardioVision/models/healthkit/bilstm_finetuned.pth' not found.")
         return
     model.to(device)
     model.eval()
@@ -124,7 +139,7 @@ def test_ohca_model():
     batch_size = 128
     y_true, y_pred = [], []
 
-    print("🔄 Running inference...")
+    print("Running inference...")
     with torch.no_grad():
         for i in tqdm(range(0, len(X_tensor), batch_size), desc="Inference"):
             X_batch = X_tensor[i:i+batch_size].to(device)
@@ -133,7 +148,7 @@ def test_ohca_model():
             y_pred.extend(preds)
             y_true.extend(y[i:i+batch_size])
 
-    print("\n🎯 OHCA Results:")
+    print("\nOHCA Results:")
     print("Classification Report:")
     print(classification_report(y_true, y_pred, target_names=["Low", "Med", "High"], labels=[0, 1, 2], digits=2))
     print("Confusion Matrix:\n", confusion_matrix(y_true, y_pred, labels=[0, 1, 2]))
@@ -153,7 +168,7 @@ def test_ohca_model():
     for idx, pred in enumerate(y_pred):
         classified_segments[class_names[pred]].append(all_metadata[idx])
 
-    print("\n📋 Classified Segments:")
+    print("\nClassified Segments:")
     for class_name in class_names:
         segments = classified_segments[class_name]
         print(f"{class_name} Classified Segments ({len(segments)}):")

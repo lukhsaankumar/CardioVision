@@ -1,3 +1,41 @@
+/*
+ContentView: Main SwiftUI View for CardioVision App
+---------------------------------------------------
+This view is the main user interface of the CardioVision app, which provides:
+- A disclaimer screen shown on initial launch for user awareness.
+- Real-time heart rate display and risk prediction results.
+- Interaction for recording an ECG (electrocardiogram) for further analysis.
+- Conditional display of ECG analysis results.
+
+Features:
+1. Disclaimer Screen:
+   - Provides a health disclaimer to inform users that this app is not a replacement for professional medical diagnosis.
+   - Users must acknowledge the disclaimer to proceed.
+
+2. Real-time Health Metrics:
+   - Displays the latest heart rate fetched using HealthKit.
+   - Displays the initial prediction result (No Risk, Possible Risk) based on fetched metrics.
+
+3. ECG Recording and Analysis:
+   - If the initial prediction indicates a possible risk, the user is prompted to record an ECG.
+   - In demo mode, the app uses a test ECG sample.
+   - The recorded ECG is analyzed, and the final prediction is displayed.
+
+4. User Interaction:
+   - The user can acknowledge the disclaimer, view health metrics, and record an ECG.
+   - A spinner is shown while ECG analysis is in progress.
+
+5. Dynamic UI Updates:
+   - The view is updated in real-time using @StateObject for the ECGUploader.
+   - Text color changes dynamically based on the prediction result.
+
+Note:
+- Ensure that HealthKit permissions are correctly set for heart rate, HRV, resting heart rate, and ECG data.
+- The ECG functionality has not been fully tested due to inaccessibility to an Apple Watch Series 6 or above with ECG capabilities.
+
+*/
+
+
 import SwiftUI
 
 struct ContentView: View {

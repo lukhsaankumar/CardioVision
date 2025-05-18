@@ -1,3 +1,16 @@
+"""
+HealthKit Model Testing Script (Initial Model - Random Forest)
+---------------------------------------------------------------
+This script tests the initial HealthKit Random Forest model for cardiac arrest risk prediction.
+
+Description:
+- Loads a pre-trained Random Forest model for risk classification based on HealthKit metrics (HR, HRV, RHR, HHR).
+- Loads and preprocesses test data from the mockHealthkit dataset (JSON format).
+- Each JSON file contains four metrics (HR, HRV, RHR, HHR).
+- Evaluates the model on the test dataset using classification metrics (Accuracy, Precision, Recall, F1-Score, Confusion Matrix).
+- Identifies and logs any misclassified samples, displaying them in the console.
+"""
+
 import os
 import json
 import joblib
@@ -34,7 +47,7 @@ y_pred = model.predict(X_test)
 
 # Accuracy
 accuracy = accuracy_score(y_test, y_pred)
-print(f"\n🧪 Test Accuracy: {accuracy:.2f}")
+print(f"\nTest Accuracy: {accuracy:.2f}")
 
 # Detailed Report
 print("\nDetailed Classification Report:")
@@ -51,8 +64,8 @@ for i, (true, pred) in enumerate(zip(y_test, y_pred)):
         misclassified.append((i, true, pred, X_test[i]))
 
 if misclassified:
-    print(f"\n⚠️ Misclassified {len(misclassified)} samples:")
+    print(f"\nMisclassified {len(misclassified)} samples:")
     for idx, true, pred, features in misclassified:
         print(f"Sample {idx}: True={true}, Pred={pred}, Features={features}")
 else:
-    print("\n✅ No misclassifications found.")
+    print("\nNo misclassifications found.")

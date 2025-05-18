@@ -1,3 +1,17 @@
+"""
+LSTM ECG Model Testing Script (MIT-BIH)
+---------------------------------------
+This script tests a pre-trained LSTM model for ECG classification on MIT-BIH records.
+
+Description:
+- Loads a pre-trained LSTM model for ECG classification (binary: Normal vs Arrhythmia).
+- Evaluates the model on multiple MIT-BIH records.
+- Calculates and displays evaluation metrics (Accuracy, Precision, Recall, F1-Score, ROC-AUC).
+- Results are displayed in the console and can be found at:
+  testresults/mitbih/MITBIH_ECG.txt
+
+"""
+
 import os
 import wfdb
 import numpy as np
@@ -14,6 +28,19 @@ from scripts.train.ecg.train_ecg import LSTMModel, load_beats
 
 # Load trained model
 def load_model(model_path, input_size, hidden_size, num_layers, output_size):
+    """
+    Loads a pre-trained LSTM model from the specified path.
+
+    Args:
+        model_path (str): Path to the saved LSTM model file.
+        input_size (int): Input size of the LSTM model.
+        hidden_size (int): Number of hidden units in the LSTM.
+        num_layers (int): Number of LSTM layers.
+        output_size (int): Output size of the model.
+
+    Returns:
+        model (torch.nn.Module): Loaded LSTM model.
+    """
     model = LSTMModel(input_size, hidden_size, num_layers, output_size)
     model.load_state_dict(torch.load(model_path))
     model.eval()
@@ -21,6 +48,17 @@ def load_model(model_path, input_size, hidden_size, num_layers, output_size):
 
 # Load and preprocess individual ECG record
 def load_ecg(record, window_size=250):
+    """
+    Loads and preprocesses an ECG record from MIT-BIH for testing.
+
+    Args:
+        record (str): Record ID (e.g., "100", "101").
+        window_size (int): Length of each ECG segment (default: 250).
+
+    Returns:
+        beats_tensor (torch.Tensor): Tensor of segmented ECG beats.
+        labels_tensor (torch.Tensor): Corresponding labels (0 for normal, 1 for arrhythmia).
+    """
     # Load record and annotations
     rec = wfdb.rdrecord(f'../CardioVision/data/mitdb/{record}')
     ann = wfdb.rdann(f'../CardioVision/data/mitdb/{record}', extension='atr')
@@ -29,7 +67,7 @@ def load_ecg(record, window_size=250):
     beats = []
     labels = []
 
-    # Normal symbols according to MIT-BIH
+    # Define normal symbols (normal beats)
     normal_symbols = ['N', 'L', 'R', 'e', 'j']
 
     for idx, beat in enumerate(ann.sample):
@@ -52,6 +90,16 @@ def load_ecg(record, window_size=250):
 
 # Function to make predictions
 def predict(model, beats):
+    """
+    Generates predictions for a batch of ECG beats.
+
+    Args:
+        model (torch.nn.Module): Pre-trained LSTM model.
+        beats (torch.Tensor): Tensor of segmented ECG beats.
+
+    Returns:
+        torch.Tensor: Predicted labels (0 or 1).
+    """
     with torch.no_grad():
         outputs = model(beats)
         predicted = (torch.sigmoid(outputs.squeeze()) > 0.5).float()
@@ -59,6 +107,13 @@ def predict(model, beats):
 
 # Evaluate model on a single record
 def evaluate(model, record):
+    """
+    Evaluates the model on a single ECG record.
+
+    Args:
+        model (torch.nn.Module): Pre-trained LSTM model.
+        record (str): Record ID (e.g., "100", "101").
+    """
     beats, labels = load_ecg(record)
 
     if beats.size(0) == 0:
@@ -71,6 +126,7 @@ def evaluate(model, record):
     predictions = predictions.numpy()
     labels = labels.numpy()
 
+    # Calculate evaluation metrics
     accuracy = accuracy_score(labels, predictions)
     precision = precision_score(labels, predictions, zero_division=0)
     recall = recall_score(labels, predictions, zero_division=0)
@@ -80,7 +136,7 @@ def evaluate(model, record):
     except ValueError:
         roc_auc = float('nan')
 
-    # Force confusion matrix to be 2x2 by specifying the labels.
+    # Confusion matrix and metrics
     cm = confusion_matrix(labels, predictions, labels=[0, 1])
     try:
         tn, fp, fn, tp = cm.ravel()
@@ -88,6 +144,7 @@ def evaluate(model, record):
         print("Warning: Confusion matrix could not be unpacked to 4 values. Only one class present.")
         tn = fp = fn = tp = 0
 
+    # Display results
     print(f"\nEvaluation on record {record}:")
     print(f"Accuracy: {accuracy:.4f}")
     print(f"Precision: {precision:.4f}")
@@ -102,9 +159,13 @@ def evaluate(model, record):
 
     return accuracy, precision, recall, f1, roc_auc, tn, fp, fn, tp
 
-
 # Main function for testing multiple records
 def main():
+    """
+    Main function to test the LSTM model on multiple MIT-BIH records.
+    Results are displayed in the console and can be found at:
+    testresults/MITBIH_ECG.txt
+    """
     model_path = '../CardioVision/models/ecg/lstm_model.pth'
     model = load_model(model_path, input_size=1, hidden_size=128, num_layers=3, output_size=1)
     

@@ -1,3 +1,12 @@
-MIT-BIH Arrhythmia Database
-Apple Healthkit API
-Benini, Sergio; Ivanovic, Marija D.; Savardi, Mattia ; Krsic, Jelena; Hadžievski, Ljupco; Baronio, Fabio  (2020), “Cardially - ECG waveform dataset for predicting defibrillation outcome in out-of-hospital cardiac arrested patients”, Mendeley Data, V1, doi: 10.17632/wpr5nzyn2z.1
+Apple HealthKit Documentation: Apple Developer. Available at: https://developer.apple.com/documentation/healthkit
+OHCA Database: “Out-of-Hospital Cardiac Arrest Registry,” PMC. Available at: https://pmc.ncbi.nlm.nih.gov/articles/PMC7753135/
+INCART Database: “The St. Petersburg Institute of Cardiological Technics 12-lead Arrhythmia Database,” PhysioNet. Available at: https://archive.physionet.org/physiobank/database/incartdb/
+Holter Database (SDDB): “Sudden Cardiac Death Holter Database,” PhysioNet. Available at: https://archive.physionet.org/physiobank/database/sddb/
+MIMIC-III Waveform Database: “MIMIC-III Waveform Database (Version 1.0),” PhysioNet. Available at: https://physionet.org/content/mimic3wdb/1.0/
+MIT-BIH Arrhythmia Database: “MIT-BIH Arrhythmia Database (Version 1.0.0),” PhysioNet. Available at: https://www.physionet.org/content/mitdb/1.0.0/
+American Heart Association. (n.d.). Tachycardia (Fast Heart Rate). Retrieved from https://www.heart.org/en/health-topics/arrhythmia/about-arrhythmia/tachycardia--fast-heart-rate
+Kubios. (n.d.). Heart Rate Variability (HRV) Normal Range. Retrieved from https://www.kubios.com/blog/heart-rate-variability-normal-range/
+WebMD. (n.d.). What Is Heart Rate Variability?. Retrieved from https://www.webmd.com/heart/what-is-heart-rate-variability
+American Heart Association. (n.d.). Tachycardia (Fast Heart Rate). Retrieved from https://www.heart.org/en/health-topics/arrhythmia/about-arrhythmia/tachycardia--fast-heart-rate
+American Heart Association. (n.d.). Tachycardia (Fast Heart Rate). Retrieved from https://www.heart.org/en/health-topics/arrhythmia/about-arrhythmia/tachycardia--fast-heart-rate
+Harvard Health Publishing. (2019, March). What your heart rate is telling you. Retrieved from https://www.health.harvard.edu/heart-health/what-your-heart-rate-is-telling-you

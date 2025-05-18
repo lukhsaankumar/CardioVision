@@ -1,3 +1,16 @@
+"""
+BiLSTM ECG Model Fine-Tuning Script (Feedback Sample Extraction + Fine-Tuning)
+------------------------------------------------------------------------------
+This script fine-tunes a pre-trained BiLSTM model for ECG classification (3-class: Low, Medium, High risk).
+
+Description:
+- Extracts feedback samples (True Positive, False Negative) from MIT-BIH, Holter, and INCART datasets.
+- Applies SMOTE to enhance sample balance for fine-tuning.
+- Fine-tunes the BiLSTM model using feedback samples.
+- Displays training and validation metrics (Accuracy, Confusion Matrix, False Negative Rates).
+- Saves the fine-tuned model to ../CardioVision/models/healthkit/bilstm_finetuned.pth
+"""
+
 import warnings
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 import numpy as np
@@ -16,8 +29,10 @@ import os
 import glob
 from imblearn.over_sampling import SMOTE
 
-# BiLSTM Model
 class BiLSTMModel(nn.Module):
+    """
+    BiLSTM Model for ECG Classification (3-class: Low, Medium, High).
+    """
     def __init__(self, input_size=1, hidden_size=128, num_layers=3, output_size=3, dropout=0.3):
         super(BiLSTMModel, self).__init__()
         self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True,
@@ -26,6 +41,9 @@ class BiLSTMModel(nn.Module):
         self.fc = nn.Linear(hidden_size * 2, output_size)
 
     def forward(self, x):
+        """
+        Forward pass for the BiLSTM model.
+        """
         x, _ = self.lstm(x)
         x = self.dropout(x[:, -1, :])
         x = self.fc(x)
@@ -33,6 +51,9 @@ class BiLSTMModel(nn.Module):
 
 # Focal Loss with Class Weights
 class FocalLoss(nn.Module):
+    """
+    Focal Loss with optional class weights for fine-tuning.
+    """
     def __init__(self, alpha=0.95, gamma=2.0, class_weights=None, reduction='mean'):
         super(FocalLoss, self).__init__()
         self.alpha = alpha
@@ -41,6 +62,9 @@ class FocalLoss(nn.Module):
         self.reduction = reduction
 
     def forward(self, inputs, targets):
+        """
+        Forward pass for focal loss calculation.
+        """
         BCE_loss = nn.CrossEntropyLoss(weight=self.class_weights, reduction='none')(inputs, targets)
         pt = torch.exp(-BCE_loss)
         F_loss = self.alpha * (1 - pt) ** self.gamma * BCE_loss
@@ -57,7 +81,7 @@ ecg_model = BiLSTMModel(input_size=1, hidden_size=128, num_layers=3, output_size
 try:
     ecg_model.load_state_dict(torch.load("../CardioVision/models/ecg/bilstm_model_multiclass.pth", map_location=device))
 except FileNotFoundError:
-    print("❌ BiLSTM model not found.")
+    print("BiLSTM model not found.")
     exit(1)
 ecg_model.eval()
 
@@ -77,13 +101,13 @@ def load_record(record_path):
         annotation = wfdb.rdann(record_path, 'atr')
         signal = record.p_signal[:, 0]
         if np.any(np.isnan(signal)) or np.any(np.isinf(signal)):
-            print(f"⚠️ Imputing NaN/Inf in signal for record {os.path.basename(record_path)}")
+            print(f"Imputing NaN/Inf in signal for record {os.path.basename(record_path)}")
             signal = np.nan_to_num(signal, nan=np.mean(signal[~np.isnan(signal)]), 
                                    posinf=np.max(signal[~np.isinf(signal)]), 
                                    neginf=np.min(signal[~np.isinf(signal)]))
         return signal, annotation.symbol, annotation.sample
     except Exception as e:
-        print(f"⚠️ Skipped {record_path}: {e}")
+        print(f"Skipped {record_path}: {e}")
         return None, None, None
 
 def segment_beat(signal, peak, window_size=250, fs=360):
@@ -115,7 +139,7 @@ def extract_feedback_samples():
     high_fn = 0
     total_fn = 0
 
-    print("🔄 Extracting Feedback Samples...")
+    print("Extracting Feedback Samples...")
     for record_path in tqdm(all_records, desc="Processing Records"):
         signal, symbols, peaks = load_record(record_path.replace('.dat', ''))
         if signal is None:
@@ -219,7 +243,7 @@ def extract_feedback_samples():
                     feedback_samples.append((segment_normalized, label))
                     sample_counts[label] += 1
 
-    print(f"\n✅ Total High-risk Samples: {total_high}, High-risk FNs: {high_fn} ({high_fn/total_high*100:.2f}%)")
+    print(f"\nTotal High-risk Samples: {total_high}, High-risk FNs: {high_fn} ({high_fn/total_high*100:.2f}%)")
     print("Submodel FN Trends:")
     for model in fn_submodel_stats:
         abnormal_rate = np.mean(fn_submodel_stats[model]) if fn_submodel_stats[model] else 0
@@ -232,10 +256,10 @@ def extract_feedback_samples():
 # Collect Feedback Samples
 feedback_samples = extract_feedback_samples()
 if not feedback_samples:
-    print("❌ No feedback samples collected.")
+    print("No feedback samples collected.")
     exit(1)
 
-print(f"\n✅ Collected {len(feedback_samples)} feedback samples for fine-tuning.")
+print(f"\nCollected {len(feedback_samples)} feedback samples for fine-tuning.")
 
 # Prepare Training Data
 segments = np.array([seg for seg, _ in feedback_samples])
@@ -277,7 +301,7 @@ scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0
 class_weights = torch.tensor([1.0, 1.4, 1.6], device=device)
 criterion = FocalLoss(alpha=0.95, gamma=2.0, class_weights=class_weights)
 
-print("\n🔄 Fine-tuning BiLSTM...")
+print("\nFine-tuning BiLSTM...")
 for epoch in range(25):
     # Training Phase
     ecg_model.train()
@@ -323,4 +347,4 @@ for epoch in range(25):
     scheduler.step(fn_val_high_rate)
 
 torch.save(ecg_model.state_dict(), "../CardioVision/models/healthkit/bilstm_finetuned.pth")
-print("\n✅ Fine-tuned BiLSTM saved to models/healthkit/bilstm_finetuned.pth")
+print("\nFine-tuned BiLSTM saved to models/healthkit/bilstm_finetuned.pth")

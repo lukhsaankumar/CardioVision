@@ -1,3 +1,17 @@
+"""
+LightGBM HRV Model - MIT-BIH Evaluation
+----------------------------------------
+This script tests the LightGBM HRV model using the MIT-BIH dataset.
+
+Description:
+- Loads a pre-trained LightGBM model for HRV-based arrhythmia detection.
+- Extracts HRV features from RR intervals of ECG records in the MIT-BIH dataset.
+- Classifies each window of RR intervals as normal or arrhythmic.
+- Evaluates the model using classification metrics (Accuracy, Precision, Recall, F1-Score, Confusion Matrix).
+- Results are displayed in the console and can be found at:
+  testresults/mitbih/MITBIH_HRV2.txt
+"""
+
 import os
 import wfdb
 import numpy as np
@@ -12,13 +26,28 @@ from sklearn.metrics import (
 
 # ---------- Load LightGBM model and scaler ----------
 def load_hrv_model(path='../CardioVision/models/heartratevariability/lgb_hrv_model.pkl'):
+    """
+    Loads the LightGBM HRV model.
+    """
     return load(path)
 
 def load_scaler(path='../CardioVision/models/heartratevariability/scaler.pkl'):
+    """
+    Loads the scaler for HRV feature normalization.
+    """
     return load(path)
 
 # ---------- Feature extraction ----------
 def compute_hrv_features(rr_intervals):
+    """
+    Computes HRV features from RR intervals for model input.
+
+    Args:
+        rr_intervals (array): Array of RR intervals (in ms).
+
+    Returns:
+        list: HRV feature vector (10 features).
+    """
     rr_intervals = np.asarray(rr_intervals)
     if len(rr_intervals) < 3 or np.any(np.isnan(rr_intervals)) or np.all(rr_intervals == rr_intervals[0]):
         return None
@@ -53,14 +82,32 @@ def compute_hrv_features(rr_intervals):
 
 # ---------- Extract RR intervals and symbols ----------
 def extract_rr_intervals(record):
+    """
+    Extracts RR intervals and symbols from a given MIT-BIH ECG record.
+
+    Args:
+        record (str): Record filename (without extension).
+
+    Returns:
+        tuple: (RR intervals, annotation symbols)
+    """
     rec = wfdb.rdrecord(f'../CardioVision/data/mitdb/{record}')
     ann = wfdb.rdann(f'../CardioVision/data/mitdb/{record}', 'atr')
     r_peaks = ann.sample
-    rr_intervals = np.diff(r_peaks) / rec.fs * 1000
+    rr_intervals = np.diff(r_peaks) / rec.fs * 1000  # Convert to milliseconds
     return rr_intervals, ann.symbol[1:]
 
 # ---------- Evaluate on one record ----------
 def evaluate_record(model, scaler, record, window_size=10):
+    """
+    Evaluates the LightGBM HRV model on a single MIT-BIH record.
+
+    Args:
+        model: Loaded HRV model.
+        scaler: Loaded scaler for feature normalization.
+        record (str): Record filename.
+        window_size (int): Size of the RR window for feature extraction.
+    """
     try:
         rr_intervals, symbols = extract_rr_intervals(record)
     except Exception as e:
@@ -94,6 +141,9 @@ def evaluate_record(model, scaler, record, window_size=10):
 
 # ---------- Main ----------
 def main():
+    """
+    Main function to test the LightGBM HRV model on multiple MIT-BIH records.
+    """
     model = load_hrv_model()
     scaler = load_scaler()
 
@@ -103,6 +153,8 @@ def main():
            list(range(212, 216)) + [217] + list(range(219, 224)) +
            [228] + list(range(230, 235))]
     ]
+
+    print("\nTesting HRV LightGBM Model on MIT-BIH Dataset\n")
 
     for record in test_records:
         evaluate_record(model, scaler, record)

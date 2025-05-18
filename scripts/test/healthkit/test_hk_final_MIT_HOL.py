@@ -1,3 +1,16 @@
+"""
+BiLSTM ECG Model Fine-Tuning Script (Feedback Sample Extraction + Fine-Tuning)
+------------------------------------------------------------------------------
+This script fine-tunes a pre-trained BiLSTM model for ECG classification (3-class: Low, Medium, High risk).
+
+Description:
+- Extracts feedback samples (True Positive, False Negative) from MIT-BIH, Holter, and INCART datasets.
+- Applies SMOTE to enhance sample balance for fine-tuning.
+- Fine-tunes the BiLSTM model using feedback samples.
+- Displays training and validation metrics (Accuracy, Confusion Matrix, False Negative Rates).
+- Saves the fine-tuned model to ../CardioVision/models/healthkit/bilstm_finetuned.pth
+"""
+
 import warnings
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 import os
@@ -12,6 +25,9 @@ from tqdm import tqdm
 
 # BiLSTM Model Definition
 class BiLSTMModel(nn.Module):
+    """
+    BiLSTM Model for ECG Classification (3-class: Low, Medium, High).
+    """
     def __init__(self, input_size=1, hidden_size=128, num_layers=3, output_size=3, dropout=0.3):
         super(BiLSTMModel, self).__init__()
         self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True,
@@ -64,10 +80,10 @@ def load_ecg_segments(record_path, symbols, label, window_size=250, target_fs=25
 
         segments = np.array(segments)
         labels = np.array(labels)
-        print(f"✅ Loaded {len(segments)} beats from {os.path.basename(record_path)}")
+        print(f"Loaded {len(segments)} beats from {os.path.basename(record_path)}")
         return segments, labels
     except Exception as e:
-        print(f"⚠️ Skipping {record_path}: {e}")
+        print(f"Skipping {record_path}: {e}")
         return np.array([]), np.array([])
 
 # Test model
@@ -85,16 +101,16 @@ def test_model():
     all_segments, all_labels = [], []
 
     # Load Low-risk beats
-    print("📥 Loading Low-risk beats...")
+    print("Loading Low-risk beats...")
     for rec in low_risk_recs:
-        print(f"🔍 Reading record {os.path.join(mitdb_path, rec)} ...")
+        print(f"Reading record {os.path.join(mitdb_path, rec)} ...")
         segments, labels = load_ecg_segments(os.path.join(mitdb_path, rec), low_syms, 0)
         if segments.size > 0:
             all_segments.extend(segments)
             all_labels.extend(labels)
 
     # Load Med-risk beats
-    print("📥 Loading Med-risk beats...")
+    print("Loading Med-risk beats...")
     for rec in med_risk_recs:
         print(f"🔍 Reading record {os.path.join(mitdb_path, rec)} ...")
         segments, labels = load_ecg_segments(os.path.join(mitdb_path, rec), med_syms, 1)
@@ -103,7 +119,7 @@ def test_model():
             all_labels.extend(labels)
 
     # Load High-risk beats
-    print("📥 Loading High-risk beats...")
+    print("Loading High-risk beats...")
     for rec in high_risk_recs:
         print(f"🔍 Reading record {os.path.join(holter_path, rec)} ...")
         segments, labels = load_ecg_segments(os.path.join(holter_path, rec), high_syms, 2)
@@ -112,12 +128,12 @@ def test_model():
             all_labels.extend(labels)
 
     if not all_segments:
-        print("❌ No valid segments collected.")
+        print("No valid segments collected.")
         return
 
     X = np.array(all_segments, dtype=np.float32)
     y = np.array(all_labels, dtype=np.int64)
-    print(f"🎯 Evaluating on {len(X)} beats...")
+    print(f"Evaluating on {len(X)} beats...")
 
     X_tensor = torch.tensor(X, dtype=torch.float32).unsqueeze(-1)  # [N, 250, 1]
     y_tensor = torch.tensor(y, dtype=torch.long)
@@ -127,7 +143,7 @@ def test_model():
     try:
         model.load_state_dict(torch.load("../CardioVision/models/healthkit/bilstm_finetuned.pth", map_location=device))
     except FileNotFoundError:
-        print("❌ Model file '../CardioVision/models/healthkit/bilstm_finetuned.pth' not found.")
+        print("Model file '../CardioVision/models/healthkit/bilstm_finetuned.pth' not found.")
         return
     model.to(device)
     model.eval()
@@ -135,7 +151,7 @@ def test_model():
     batch_size = 128
     y_true, y_pred = [], []
 
-    print("🔄 Running inference...")
+    print("Running inference...")
     with torch.no_grad():
         for i in tqdm(range(0, len(X_tensor), batch_size), desc="Inference"):
             X_batch = X_tensor[i:i+batch_size].to(device)
@@ -144,7 +160,7 @@ def test_model():
             y_pred.extend(preds)
             y_true.extend(y_tensor[i:i+batch_size].numpy())
 
-    print("\n🎯 MIT-BIH/Holter Results:")
+    print("\nMIT-BIH/Holter Results:")
     print("Classification Report:")
     print(classification_report(y_true, y_pred, target_names=["Low", "Med", "High"], digits=2))
     print("Confusion Matrix:\n", confusion_matrix(y_true, y_pred))

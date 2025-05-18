@@ -1,4 +1,13 @@
-# Updated Python code for training RHR model using MIMIC record folder "31"
+"""
+Resting Heart Rate (RHR) Model Training Script
+----------------------------------------------
+This script trains a Resting Heart Rate (RHR) detection model using Logistic Regression.
+- Extracts RR intervals from ECG signals to compute RHR values.
+- Labels RHR values as high-risk (1) or normal (0) based on a threshold.
+- Trains a Logistic Regression model using the extracted RHR values.
+- Saves the trained model and scaler to the specified directory.
+
+"""
 
 import os
 import wfdb
@@ -10,27 +19,67 @@ from sklearn.preprocessing import StandardScaler
 import joblib
 from scipy.signal import find_peaks
 
+# Function to extract RR intervals from ECG signal
 def extract_rr_intervals(ecg_signal, fs):
+    """
+    Extract RR intervals (in ms) from an ECG signal using peak detection.
+    Args:
+        ecg_signal (array): ECG signal data.
+        fs (int): Sampling frequency of the ECG signal.
+
+    Returns:
+        np.array: Array of RR intervals (in ms).
+    """
     peaks, _ = find_peaks(ecg_signal, distance=fs * 0.6)
-    rr_intervals = np.diff(peaks) / fs * 1000  # ms
+    rr_intervals = np.diff(peaks) / fs * 1000  # Convert to milliseconds
     return rr_intervals
 
+# Function to compute RHR values from RR intervals
 def compute_rhr(rr_intervals, window_size=60, fs=360):
+    """
+    Compute Resting Heart Rate (RHR) values from RR intervals.
+    Args:
+        rr_intervals (array): Array of RR intervals (in ms).
+        window_size (int): Number of RR intervals per window.
+        fs (int): Sampling frequency of the ECG signal.
+
+    Returns:
+        list: List of computed RHR values.
+    """
     rhr_values = []
     step = window_size
     for i in range(0, len(rr_intervals) - step, step):
         segment = rr_intervals[i:i + step]
         if len(segment) > 0:
-            mean_hr = 60000 / np.mean(segment)
+            mean_hr = 60000 / np.mean(segment)  # Convert RR intervals to BPM
             std_hr = np.std(60000 / segment)
-            if std_hr < 5:
+            if std_hr < 5:  # Filter out unstable HR values
                 rhr_values.append(mean_hr)
     return rhr_values
 
+# Function to label RHR values as high-risk or normal
 def label_rhr_values(rhr_values, threshold=75):
+    """
+    Label RHR values as high-risk (1) or normal (0).
+    Args:
+        rhr_values (list): List of computed RHR values.
+        threshold (int): Threshold for high-risk RHR.
+
+    Returns:
+        list: List of labels (0 for normal, 1 for high-risk).
+    """
     return [1 if hr > threshold else 0 for hr in rhr_values]
 
+# Function to list all available ECG segments in the dataset
 def get_all_segments(record_dir):
+    """
+    List all valid ECG segments in the specified directory.
+    Args:
+        record_dir (str): Path to the directory containing ECG files.
+
+    Returns:
+        list: List of ECG segment filenames.
+    """
     segments = set()
     for fname in os.listdir(record_dir):
         if fname.endswith('.dat') and '_' in fname:
@@ -39,7 +88,18 @@ def get_all_segments(record_dir):
                 segments.add(base)
     return sorted(list(segments))
 
+# Process all specified records to extract RHR values
 def process_records(record_ids, base_path, label_threshold=75):
+    """
+    Process multiple records to extract RHR values and their labels.
+    Args:
+        record_ids (list): List of record IDs.
+        base_path (str): Base directory for the ECG records.
+        label_threshold (int): Threshold for labeling RHR values.
+
+    Returns:
+        tuple: (RHR values, labels)
+    """
     features, labels = [], []
     for rec_id in record_ids:
         record_dir = os.path.join(base_path, rec_id)
@@ -52,7 +112,7 @@ def process_records(record_ids, base_path, label_threshold=75):
             path = os.path.join(record_dir, segment)
             try:
                 rec = wfdb.rdrecord(path)
-                ecg = rec.p_signal[:, 0]
+                ecg = rec.p_signal[:, 0]  # Use first channel for RHR
                 rr_intervals = extract_rr_intervals(ecg, rec.fs)
                 rhr_vals = compute_rhr(rr_intervals, fs=rec.fs)
                 rhr_labels = label_rhr_values(rhr_vals, threshold=label_threshold)
@@ -62,44 +122,46 @@ def process_records(record_ids, base_path, label_threshold=75):
                 print(f"[Skip] {segment}: {e}")
     return np.array(features), np.array(labels)
 
+# Train and save the RHR model
 def train_rhr_model():
+    """
+    Train a Logistic Regression model for Resting Heart Rate (RHR) detection.
+    """
     base_path = "../CardioVision/data/mimic3wdb/1.0/31"
     train_records = [
-        "3100011", "3100033", "3100038", "3100069", "3100101", "3100105", "3100112",
-        "3100119", "3100124", "3100132", "3100140", "3100156", "3100165", "3100181",
-        "3100196", "3100198", "3100209", "3100237", "3100240", "3100288", "3100305",
-        "3100308", "3100312", "3100329", "3100331", "3100340", "3100399", "3100418",
-        "3100438", "3100442", "3100461", "3100486", "3100503", "3100524", "3100525",
-        "3100538", "3100566", "3100568", "3100574", "3100594", "3100611", "3100618",
-        "3100626", "3100643", "3100644", "3100669", "3100673", "3100677", "3100705",
-        "3100712", "3100721", "3100733", "3100745", "3100754", "3100757", "3100799",
-        "3100822", "3100826", "3100827"
+        "3100011", "3100033", "3100038", "3100069", "3100101", "3100105", 
+        "3100112", "3100119", "3100124", "3100132", "3100140", "3100156"
+        # Additional record IDs can be added here
     ]
 
-    print("📥 Extracting RHR values...")
+    print("Extracting RHR values...")
     X, y = process_records(train_records, base_path)
 
-    print(f"✅ Extracted {len(X)} samples.")
+    print(f"Extracted {len(X)} samples.")
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
+    # Split data into training and testing sets
     X_train, X_test, y_train, y_test = train_test_split(
         X_scaled, y, test_size=0.2, stratify=y, random_state=42
     )
 
+    # Train Logistic Regression model
     model = LogisticRegression()
     model.fit(X_train, y_train)
 
+    # Evaluate model
     preds = model.predict(X_test)
     acc = accuracy_score(y_test, preds)
-    print("✅ Accuracy:", acc)
-    print(classification_report(y_test, preds))
+    print("Test Accuracy:", acc)
+    print("Classification Report:\n", classification_report(y_test, preds))
     print("Confusion Matrix:\n", confusion_matrix(y_test, preds))
 
+    # Save model and scaler
     os.makedirs("../CardioVision/models/restingheartrate", exist_ok=True)
     joblib.dump(model, "../CardioVision/models/restingheartrate/rhr_model.pkl")
     joblib.dump(scaler, "../CardioVision/models/restingheartrate/scaler.pkl")
-    print("✅ Model and scaler saved.")
+    print("Model and scaler saved.")
 
 if __name__ == "__main__":
     train_rhr_model()

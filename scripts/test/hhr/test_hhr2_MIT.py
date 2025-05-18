@@ -1,9 +1,22 @@
+"""
+Random Forest High Heart Rate (HHR) Detection - MIT-BIH Evaluation
+-----------------------------------------------------------------
+This script tests the improved Random Forest model (rf_hhr2) for High Heart Rate (HHR) detection using the MIT-BIH dataset.
+
+Description:
+- Loads a pre-trained Random Forest model (rf_hhr2) for detecting high heart rate events.
+- Extracts RR interval-based features from ECG records in the MIT-BIH dataset.
+- Labels each window based on a high heart rate threshold (150 bpm).
+- Evaluates the model's performance using classification metrics (Accuracy, Precision, Recall, F1-Score, Confusion Matrix).
+- Results are displayed in the console and can be found at:
+  testresults/mitbih/MITBIH_HHR2.txt
+"""
+
 import os
 import wfdb
 import numpy as np
 from joblib import load
 from sklearn.metrics import classification_report, confusion_matrix
-import itertools
 
 # Load model and scaler
 model_path = "../CardioVision/models/highheartrateevents/rf_hhr2_model.pkl"
@@ -11,8 +24,21 @@ scaler_path = "../CardioVision/models/highheartrateevents/scaler.pkl"
 model = load(model_path)
 scaler = load(scaler_path)
 
-# Feature extraction
+# -------------------------------
+# FEATURE EXTRACTION
+# -------------------------------
 def extract_features_from_hr_series(hr_series, window_size=10, threshold_bpm=150):
+    """
+    Extracts high heart rate (HHR) features from the heart rate (HR) series.
+
+    Args:
+        hr_series (array): Array of heart rate values (bpm).
+        window_size (int): Size of the sliding window for feature extraction.
+        threshold_bpm (int): Threshold for detecting high heart rate (HHR).
+
+    Returns:
+        np.array: Feature matrix for HHR detection.
+    """
     features = []
     for i in range(len(hr_series) - window_size):
         window = hr_series[i:i + window_size]
@@ -32,17 +58,42 @@ def extract_features_from_hr_series(hr_series, window_size=10, threshold_bpm=150
         features.append(feats)
     return np.array(features)
 
-# Determine labels
+# -------------------------------
+# LABELING FUNCTION
+# -------------------------------
 def label_high_hr_events(hr_series, window_size=10, threshold_bpm=150):
+    """
+    Labels high heart rate (HHR) events based on the HR threshold.
+
+    Args:
+        hr_series (array): Array of heart rate values (bpm).
+        window_size (int): Size of the sliding window for labeling.
+        threshold_bpm (int): Threshold for detecting high heart rate (HHR).
+
+    Returns:
+        np.array: Array of labels (1: HHR detected, 0: No HHR).
+    """
     labels = []
     for i in range(len(hr_series) - window_size):
-        window = hr_series[i:i+window_size]
+        window = hr_series[i:i + window_size]
         sustained = np.all(window > threshold_bpm)
         labels.append(int(sustained))
     return np.array(labels)
 
-# Load HR signal
+# -------------------------------
+# LOAD HR DATA (MIT-BIH)
+# -------------------------------
 def load_hr(record, base_path='../CardioVision/data/mitdb'):
+    """
+    Loads ECG data and computes heart rate (HR) series from RR intervals.
+
+    Args:
+        record (str): Record filename (without extension).
+        base_path (str): Path to the MIT-BIH data directory.
+
+    Returns:
+        np.array: Array of heart rate values (bpm).
+    """
     rec = wfdb.rdrecord(os.path.join(base_path, record))
     if 'MLII' not in rec.sig_name:
         raise ValueError(f"MLII lead not found in {record}")
@@ -52,8 +103,16 @@ def load_hr(record, base_path='../CardioVision/data/mitdb'):
     hr_series = 60000 / rr_intervals
     return hr_series
 
-# Evaluate one record
+# -------------------------------
+# EVALUATION
+# -------------------------------
 def evaluate_record(record):
+    """
+    Evaluates the Random Forest HHR model on a single MIT-BIH record.
+
+    Args:
+        record (str): Record filename (without extension).
+    """
     try:
         hr_series = load_hr(record)
     except Exception as e:
@@ -64,22 +123,27 @@ def evaluate_record(record):
         print(f"[Skip] {record}: Too short ECG")
         return
 
+    # Feature extraction and prediction
     X = extract_features_from_hr_series(hr_series)
     X_scaled = scaler.transform(X)
     y_pred = model.predict(X_scaled)
     y_true = label_high_hr_events(hr_series)
 
+    # Display evaluation metrics
     print(f"\n[Test] Record {record}")
     print(f"Windows: {len(y_true)} | High HR Events (True): {np.sum(y_true)} | Predicted: {np.sum(y_pred)}")
-
-    # Ensure confusion matrix handles missing labels
     labels = [0, 1]
     print(classification_report(y_true, y_pred, zero_division=0, labels=labels))
     print("Confusion Matrix:")
     print(confusion_matrix(y_true, y_pred, labels=labels))
 
-# Main
+# -------------------------------
+# MAIN
+# -------------------------------
 def main():
+    """
+    Main function to test the Random Forest HHR model on multiple MIT-BIH records.
+    """
     test_records = [
         *[str(i) for i in list(range(100, 110))]
     ]
