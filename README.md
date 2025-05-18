@@ -2,7 +2,7 @@
 
 **Real-time Cardiac Arrest Risk Prediction using ECG and HealthKit Data**
 
-CardioVision leverages advanced machine learning to predict cardiac arrest risk in real-time by analyzing ECG waveforms and physiological data gathered from wearable devices such as the Apple Watch. It aims to improve cardiac event outcomes through early detection and timely interventions.
+CardioVision is team LNV's RBC Borealis Let's Solve it Spring 2025 project. It leverages advanced machine learning to predict cardiac arrest risk in real-time by analyzing ECG waveforms and physiological data gathered from wearable devices such as the Apple Watch. It aims to improve cardiac event outcomes through early detection and timely interventions.
 
 ---
 
@@ -24,12 +24,12 @@ Predictions are classified into **Low**, **Medium**, and **High** risk categorie
 ```yaml
 CardioVision/
 ├── data/ # Raw datasets and mock data
-│   ├── zip/
-│   │   ├── mitdb/
-│   │   ├── holter/
-│   │   ├── incart/
-│   │   ├── ohca/
-│   │   └── mimic3/
+│   ├── zip/ # Contains compressed versions of the datasets
+│   ├── mitdb/
+│   ├── holter/
+│   ├── incart/
+│   ├── ohca/
+│   └── mimic3wdb/
 │   └── mockhealthkit/
 │
 ├── models/ # Trained model files
@@ -81,12 +81,9 @@ CardioVision/
 ├── README.md
 ├── requirements.txt
 └── references.md
-```
+``` 
 
-
-## Backend Setup 
-
-### Python Environment Setup
+## Python Environment Setup
 
 ```bash
 python -m venv venv
@@ -108,19 +105,15 @@ http://0.0.0.0:8000
 
 ## Extracting Datasets
 Before training or testing models, ensure each dataset ZIP file under 
-```bash data/zip/``` is extracted into its respective folder inside the ```bash data/``` directory.
+```bash data/zip/``` is unzipped to look like the directory from earlier. Note mockhealthkitdata/ is not compressed as its required for the demo
 
-You can use copy these commands to do it at once:
+You can do this by doing:
 ```bash
-unzip data/zip/holter.zip -d data/holter/
-unzip data/zip/mimic3.zip -d data/mimic3/
-unzip data/zip/ohca.zip -d data/ohca/
-unzip data/zip/mitbih.zip -d data/mitbih/
-unzip data/zip/incart.zip -d data/incart/
+unzip 'data/zip/*.zip' -d data/
 ```
 
 ## Model Training & Testing
-# Training Models
+### Training Models
 Each metric (e.g., ECG, HR, HRV, RHR, HHR, HealthKit) has its own training script located at ```bash scripts/train/{metric}/train_{metric}.py.```
 
 For example:
@@ -131,7 +124,7 @@ Some metrics may have multiple iterations (e.g., ```bash train_hrv2.py``` for a 
 
 Each training script contains a description at the top that clearly outline the model, feature extraction, and where the models and scalars are saved: ```bash models/{metric}/```
 
-# Testing Models
+### Testing Models
 Testing scripts evaluate trained models on various datasets.
 Scripts are located at ```bash scripts/test/{metric}/test_{metric}_{DATASET}.py.```
 
@@ -142,7 +135,7 @@ python scripts/test/ecg/test_ecg_OHCA.py
 Similar to training, test scripts might have numbered iterations (e.g., ```bash test_hrv2_MITBIH.py```).
 Each test script includes a description at the top outlining the model being tested, dataset and evaluation, location where results will be saved: ```bash testresults/{dataset}/```
 
-# Viewing Test Results
+### Viewing Test Results
 All test results from running the scripts are saved in testresults/ with clear naming conventions:
 ```bash
 testresults/testresults/{dataset}/{DATASET}_{METRIC}.txt
@@ -151,59 +144,31 @@ testresults/testresults/{dataset}/{DATASET}_{METRIC}.txt
 For example:
 ```bash testresults/ohca/OHCA_ECG3.txt``` contains the results of ```bash python scripts/test/ecg/test_ecg3_OHCA.py```
 
-Frontend (watchOS/iOS) Setup ⌚️📱
-Requirements
-Xcode 14+
+## Frontend (watchOS/iOS) Setup ⌚
+### Requirements:
+ - Xcode 14+
+ - watchOS 9.4+ (Physical Apple Watch Series 6+ or Simulator)
 
-watchOS 9.4+ (Physical Apple Watch Series 6+ or Simulator)
-
-Setup
+### Setup
 Open the project at xcode/CV.xcodeproj.
+Configure mode in AppSettings.swift:
 
-Configure demo mode in AppSettings.swift:
-
-swift
-Copy code
+```swift
 static var demoMode: Bool = true  // Simulator or demo data
 static var demoMode: Bool = false // Live data with HealthKit
-Build and run on selected watchOS target (Simulator or physical device).
+```
 
-⚠️ Note:
-Due to limited access to an Apple Watch Series 6+ (required for ECG data), HealthKit integration is currently limited to simulated data (demoMode = true).
+### Run
+ - Select watchOS target in Xcode
+ - Choose a simulator such as Watch Series 7 on watchOS 9.4 or connect a physical Apple Watch
+ - Build and run the project
+ - Observe the disclaimer screen authorize, Healthkit access and confirm live heart rate and ECG workflows appear
 
-Key Features 🚀
-✅ Real-time ECG waveform classification
+## Disclaimers
+ - Apple Watch Series 6 or newer is required to test the ECG functionality of the app, as earlier models do not support ECG data collection via HealthKit.
+ - Due to the unavailability of an Apple Watch Series 6 or above, and an existing bug preventing the appearance of "Developer Positions" to enable app testing on physical watches, the live HealthKit metrics integration has not been fully tested on actual hardware. Current testing relies on mock data.
+ - The currently fine-tuned Bidirectional LSTM (```bash models/healthkit/bilstm_finetuned.pth```) exhibits some limitations due to suboptimal performance of associated submodels (HR, HRV, RHR, HHR). Therefore, all tests (including demonstrations) currently use—and should continue to use—the original model located at: ```bash models/ecg/bilstm_model_multiclass.pth```
 
-✅ HealthKit metrics integration (HR, HRV, RHR, HHR)
 
-✅ Real-time cardiac risk predictions (Low, Medium, High)
 
-✅ Continual learning from user data
 
-Future Enhancements 🌱
-Time-series forecasting of cardiac risk (24–72 hours ahead)
-
-Extended dataset integration (e.g., OHCA)
-
-Deployment optimization (Docker, Kubernetes)
-
-Automated CI/CD pipeline for updates
-
-References 📚
-MIT-BIH Arrhythmia Database
-
-INCART ECG Database
-
-OHCA Database
-
-Apple HealthKit
-
-FastAPI
-
-Team Members 👥
-[Your Name or Team Members Here]
-
-License 📄
-[Your License Information Here]
-
-❤️ CardioVision aims to empower users and healthcare providers by delivering accurate, actionable cardiac health insights in real-time.
