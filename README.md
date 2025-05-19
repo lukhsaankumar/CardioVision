@@ -21,7 +21,7 @@ Predictions are classified into **Low**, **Medium**, and **High** risk categorie
 ---
 ## DEMO
 
-![](Demo.gif)
+![](presentation/DEMO.gif)
 
  - Starts with loop of no risk data from data/mockhealthkitdata/no_risk/
  - Sends a random json from data/mockhealthkitdata/risk/ to FastAPI which sends to initial model
