@@ -23,10 +23,10 @@ Predictions are classified into **Low**, **Medium**, and **High** risk categorie
 
 ![](presentation/DEMO.gif)
 
- - Starts with loop of no risk data from ```bash data/mockhealthkitdata/no_risk/```
- - Sends a random JSON from ```bash data/mockhealthkitdata/risk/``` to FastAPI which sends to initial model
+ - Starts with loop of no risk data from ```bash data/mockhealthkit/no_risk/```
+ - Sends a random JSON from ```bash data/mockhealthkit/risk/``` to FastAPI which sends to initial model
  - Initial model detects risk and prompts user for ECG
- - Once "ECG Recorded" is pressed, demo sends ECG from ```bash data/mockhealthkitdata/high_risk/``` which is converted JSON's from the OHCA database of patients experiencing cardiac arrest
+ - Once "ECG Recorded" is pressed, demo sends ECG from ```bash data/mockhealthkit/high_risk/``` which is converted JSON's from the OHCA database of patients experiencing cardiac arrest
  - Final model predicts High Risk
 
 ## Project Structure 
@@ -114,7 +114,7 @@ http://0.0.0.0:8000
 
 ## Extracting Datasets
 
-Each dataset folder has a ```bash {dataset.md}``` file with the folder structure required for the project except ```bash data/mockhealthkitdata/``` which is already in it's necessary form as it is used in the demo.
+Each dataset folder has a ```bash {dataset.md}``` file with the folder structure required for the project except ```bash data/mockhealthkit/``` which is already in it's necessary form as it is used in the demo.
  
 **OHCA:**
 Download the dataset from https://data.mendeley.com/datasets/wpr5nzyn2z/1 and extract the zip into the ```bash data/ohca/``` folder
