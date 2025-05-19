@@ -49,6 +49,8 @@ CardioVision/
 │ ├── highheartrateevents/
 │ └── restingheartrate/
 │
+├── presentation/ # Includes presentation video, link, and pdf
+│
 ├── pipeline/ # FastAPI backend pipeline
 │ ├── main.py
 │ └── ecg_model.py
