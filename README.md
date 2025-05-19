@@ -19,6 +19,15 @@ CardioVision integrates multiple machine learning models to analyze:
 Predictions are classified into **Low**, **Medium**, and **High** risk categories, enabling proactive management of cardiac health.
 
 ---
+## DEMO
+
+![](Demo.gif)
+
+ - Starts with loop of no risk data from data/mockhealthkitdata/no_risk/
+ - Sends a random json from data/mockhealthkitdata/risk/ to FastAPI which sends to initial model
+ - Initial model detects risk and prompts user for ECG
+ - Once "ECG Recorded" is pressed, demo sends ECG from OHCA database of patient experiencing cardiac arrest
+ - Final model predicts High Risk
 
 ## Project Structure 
 ```yaml
@@ -104,13 +113,21 @@ http://0.0.0.0:8000
 ```
 
 ## Extracting Datasets
-Before training or testing models, ensure each dataset ZIP file under 
-```bash data/zip/``` is unzipped to look like the directory from earlier. Note mockhealthkitdata/ is not compressed as its required for the demo
 
-You can do this by doing:
-```bash
-unzip 'data/zip/*.zip' -d data/
-```
+OHCA
+Download the dataset from https://data.mendeley.com/datasets/wpr5nzyn2z/1 and extract the zip into the ```bash data/ohca/``` folder
+
+INCART:
+Download by doing ```bash wget -r -N -c -np -P data/incart/ https://physionet.org/files/incartdb/1.0.0/```
+
+HOLTER:
+Download by doing ```bash wget -r -N -c -np -P data/holter/ https://physionet.org/files/sddb/1.0.0/```
+
+MITBIH:
+Download by doing ```bash wget -r -N -c -np -P data/mitdb/ https://physionet.org/files/mitdb/1.0.0/```
+
+MIMIC3:
+Download by doing ```bash wget -r -N -c -np -P data/mimic3wdb/ https://physionet.org/files/mimic3wdb/1.0/```
 
 ## Model Training & Testing
 ### Training Models
