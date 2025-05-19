@@ -19,14 +19,14 @@ CardioVision integrates multiple machine learning models to analyze:
 Predictions are classified into **Low**, **Medium**, and **High** risk categories, enabling proactive management of cardiac health.
 
 ---
-## DEMO
+## Demo on Apple Watch Series 9 Emulator
 
 ![](presentation/DEMO.gif)
 
- - Starts with loop of no risk data from data/mockhealthkitdata/no_risk/
- - Sends a random json from data/mockhealthkitdata/risk/ to FastAPI which sends to initial model
+ - Starts with loop of no risk data from ```bash data/mockhealthkitdata/no_risk/```
+ - Sends a random JSON from ```bash data/mockhealthkitdata/risk/``` to FastAPI which sends to initial model
  - Initial model detects risk and prompts user for ECG
- - Once "ECG Recorded" is pressed, demo sends ECG from OHCA database of patient experiencing cardiac arrest
+ - Once "ECG Recorded" is pressed, demo sends ECG from ```bash data/mockhealthkitdata/high_risk/``` which is converted JSON's from the OHCA database of patients experiencing cardiac arrest
  - Final model predicts High Risk
 
 ## Project Structure 
