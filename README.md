@@ -114,19 +114,21 @@ http://0.0.0.0:8000
 
 ## Extracting Datasets
 
-OHCA
+Each dataset folder has a ```bash {dataset.md}``` file with the folder structure required for the project except ```bash data/mockhealthkitdata/``` which is already in it's necessary form as it is used in the demo.
+ 
+**OHCA:**
 Download the dataset from https://data.mendeley.com/datasets/wpr5nzyn2z/1 and extract the zip into the ```bash data/ohca/``` folder
 
-INCART:
+**INCART:**
 Download by doing ```bash wget -r -N -c -np -P data/incart/ https://physionet.org/files/incartdb/1.0.0/```
 
-HOLTER:
+**HOLTER:**
 Download by doing ```bash wget -r -N -c -np -P data/holter/ https://physionet.org/files/sddb/1.0.0/```
 
-MITBIH:
+**MITBIH:**
 Download by doing ```bash wget -r -N -c -np -P data/mitdb/ https://physionet.org/files/mitdb/1.0.0/```
 
-MIMIC3:
+**MIMIC3:**
 Download by doing ```bash wget -r -N -c -np -P data/mimic3wdb/ https://physionet.org/files/mimic3wdb/1.0/```
 
 ## Model Training & Testing
